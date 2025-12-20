@@ -23,6 +23,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Anonymous+Pro:wght@400;700&family=Fira+Code:wght@300..700&family=IBM+Plex+Mono:wght@400;500;600&family=Inconsolata:wght@200..900&family=JetBrains+Mono:wght@100..800&family=Source+Code+Pro:wght@200..900&display=swap" rel="stylesheet" crossOrigin="anonymous" />
+        <link rel="icon" href="/favicon.png" />
       </head>
       <body className={`${inter.variable} antialiased`}>
         {children}
