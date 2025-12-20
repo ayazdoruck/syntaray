@@ -1,4 +1,4 @@
-# <img src="./public/favicon.png" width="32" height="32" /> SyntaRay
+# <img src="./public/favicon-32x32.png" width="32" height="32" /> SyntaRay
 
 <p align="center">
   <img src="./syntaray.png" alt="SyntaRay Preview" width="100%" />
