@@ -9,8 +9,53 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "SyntaRay | Beautiful Code Snippets",
-  description: "Minimalist code visualization tool with professional layout controls.",
+  metadataBase: new URL('https://syntaray.vercel.app'),
+  title: {
+    default: "SyntaRay | Create Beautiful Code Snippets",
+    template: "%s | SyntaRay"
+  },
+  description: "Turn your code into beautiful images. SyntaRay is a minimalist code visualization tool with professional layout controls, syntax highlighting, and custom themes.",
+  keywords: ["code snippets", "code visualization", "syntax highlighting", "developer tools", "code image generator", "carbon alternative", "syntaray"],
+  authors: [{ name: "Ayaz Doruk", url: "https://github.com/ayazdoruck" }],
+  creator: "Ayaz Doruk",
+  publisher: "SyntaRay",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  openGraph: {
+    type: 'website',
+    locale: 'en_US',
+    url: 'https://syntaray.vercel.app',
+    title: 'SyntaRay | Create Beautiful Code Snippets',
+    description: 'Turn your code into beautiful images instantly. Professional layout controls and 50+ themes.',
+    siteName: 'SyntaRay',
+    images: [
+      {
+        url: '/og-image.png', // Bunu daha sonra eklememiz gerekecek veya varsayılan bir resim kullanacağız
+        width: 1200,
+        height: 630,
+        alt: 'SyntaRay Code Visualizer',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'SyntaRay | Beautiful Code Snippets',
+    description: 'Turn your code into beautiful images instantly.',
+    creator: '@ayazdoruck',
+    images: ['/og-image.png'], // Twitter için de aynı görsel
+  },
+  verification: {
+    google: 'google803ea4830a188e10', // Meta tag ile doğrulama (dosya yöntemine ek olarak garanti olsun)
+  },
 };
 
 export default function RootLayout({
