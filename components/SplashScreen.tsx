@@ -36,7 +36,7 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
         >
             <div className="relative flex flex-col items-center">
                 {/* Logo / Icon Animation */}
-                <div className="relative w-24 h-24 mb-8">
+                <div className="relative w-24 h-24 mb-8 opacity-0 animate-fade-in-up animation-delay-300">
                     <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-2xl blur-2xl animate-pulse opacity-50" />
                     <div className="relative w-full h-full bg-[#111] border border-white/10 rounded-2xl flex items-center justify-center shadow-2xl overflow-hidden group">
                         {/* Diamond Logo */}
@@ -50,15 +50,15 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
                 </div>
 
                 {/* Text */}
-                <h1 className="text-5xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-gray-500 animate-fade-in-up">
+                <h1 className="text-5xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-gradient-to-br from-white via-white to-gray-500 opacity-0 animate-fade-in-up animation-delay-500">
                     SyntaRay
                 </h1>
-                <p className="mt-2 text-sm font-light tracking-[0.2em] text-white/50 animate-fade-in-up animation-delay-300">
+                <p className="mt-4 text-sm font-bold tracking-[0.2em] text-white/50 opacity-0 animate-fade-in-up animation-delay-700">
                     Powerful • Fast • Minimal
                 </p>
 
                 {/* Loading Bar */}
-                <div className="mt-8 w-48 h-1 bg-gray-800 rounded-full overflow-hidden animation-delay-600 animate-fade-in-up">
+                <div className="mt-8 w-48 h-1 bg-gray-800 rounded-full overflow-hidden opacity-0 animate-fade-in-up animation-delay-1000">
                     <div className="h-full bg-indigo-500 animate-loading-bar rounded-full" />
                 </div>
             </div>
@@ -84,7 +84,7 @@ export default function SplashScreen({ onFinish }: { onFinish: () => void }) {
                     100% { opacity: 1; transform: translateY(0); }
                 }
                 .animate-fade-in-up {
-                    animation: fade-in-up 0.8s ease-out forwards;
+                    animation: fade-in-up 1.5s ease-out forwards;
                 }
                 .animation-delay-300 {
                     animation-delay: 300ms;

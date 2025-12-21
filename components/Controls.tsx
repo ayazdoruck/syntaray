@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import Link from 'next/link';
 import { useStore } from '@/lib/store';
 import { Download, Copy, Settings, Check, ChevronDown, Image as ImageIcon, Upload, Moon, Sun, Palette, Zap, RotateCcw } from 'lucide-react';
 import { downloadImage, copyImageToClipboard } from '@/lib/export';
@@ -427,7 +428,7 @@ export default function Controls() {
              ${glassyClass}
         `}>
                     {/* Brand / Logo */}
-                    <div className={`flex items-center gap-3 mr-auto md:mr-4 pr-0 md:pr-6 md:border-r relative group cursor-default transition-colors ${appTheme === 'dark' ? 'border-white/10' : 'border-black/5'}`}>
+                    <Link href="/" className={`flex items-center gap-3 mr-auto md:mr-4 pr-0 md:pr-6 md:border-r relative group cursor-pointer transition-colors ${appTheme === 'dark' ? 'border-white/10' : 'border-black/5'}`}>
                         <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-110 transition-transform flex-shrink-0">
                             <div className="w-4 h-4 border-2 border-white/80 rounded-sm transform rotate-45" />
                         </div>
@@ -437,7 +438,7 @@ export default function Controls() {
                             }`}>
                             SyntaRay
                         </span>
-                    </div>
+                    </Link>
 
                     {/* Theme Select (Custom) */}
                     <div className="relative group w-full sm:w-auto min-w-[160px]">

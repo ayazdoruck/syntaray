@@ -200,3 +200,27 @@ body {
 .animate-spin-slow {
   animation: spin-slow 120s linear infinite;
 }
+
+/* Arrow Launch Animation */
+@keyframes arrow-launch {
+  0% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+
+  10% {
+    transform: translateX(-15px) scale(0.95);
+    /* Gentle Pull back */
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(100vw) scale(1);
+    /* Fly off screen */
+    opacity: 0;
+  }
+}
+
+.animate-arrow-launch {
+  animation: arrow-launch 0.9s cubic-bezier(0.7, 0, 0.2, 1) forwards;
+}
