@@ -1,6 +1,6 @@
-import { toPng, toSvg, toBlob } from 'html-to-image';
+import { toPng, toSvg, toBlob, toJpeg, toCanvas } from 'html-to-image';
 
-export const downloadImage = async (nodeId: string, format: 'png' | 'svg', fileName: string = 'syntaray', pixelRatio: number = 2) => {
+export const downloadImage = async (nodeId: string, format: 'png' | 'svg' | 'jpeg' | 'webp', fileName: string = 'syntaray', pixelRatio: number = 2) => {
     const node = document.getElementById(nodeId);
     if (!node) return;
 
@@ -12,17 +12,23 @@ export const downloadImage = async (nodeId: string, format: 'png' | 'svg', fileN
                 const classList = node.classList;
                 return !classList?.contains('export-exclude');
             },
+            backgroundColor: (format === 'jpeg') ? '#ffffff' : undefined,
         };
 
         let dataUrl;
         if (format === 'png') {
             dataUrl = await toPng(node, options);
+        } else if (format === 'jpeg') {
+            dataUrl = await toJpeg(node, { ...options, quality: 0.95 });
+        } else if (format === 'webp') {
+            const canvas = await toCanvas(node, options);
+            dataUrl = canvas.toDataURL('image/webp', 0.9);
         } else {
             dataUrl = await toSvg(node, options);
         }
 
         const link = document.createElement('a');
-        link.download = `${fileName}.${format}`;
+        link.download = `${fileName}.${format === 'jpeg' ? 'jpg' : format}`;
         link.href = dataUrl;
         link.click();
     } catch (err) {

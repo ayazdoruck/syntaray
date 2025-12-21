@@ -30,6 +30,13 @@ interface CodeSnapState {
     glassOpacity: number;
     glassBlur: number;
     showGrain: boolean;
+    toast: { message: string, type: 'success' | 'error' | 'info' } | null;
+    dialog: {
+        title: string,
+        message: string,
+        onConfirm: () => void,
+        onCancel?: () => void
+    } | null;
 
     setCode: (code: string) => void;
     setLanguage: (lang: string) => void;
@@ -59,6 +66,8 @@ interface CodeSnapState {
     setGlassOpacity: (opacity: number) => void;
     setGlassBlur: (blur: number) => void;
     setShowGrain: (show: boolean) => void;
+    setToast: (toast: { message: string, type: 'success' | 'error' | 'info' } | null) => void;
+    setDialog: (dialog: { title: string, message: string, onConfirm: () => void, onCancel?: () => void } | null) => void;
     reset: () => void;
 }
 
@@ -80,10 +89,10 @@ const initialState = {
     hasShadow: true,
     watermark: true,
     appTheme: 'dark' as 'dark' | 'light',
-    editorWidth: 0, // 0 means auto
-    editorHeight: 0, // 0 means auto
-    frameWidth: 0, // 0 means auto
-    frameHeight: 0, // 0 means auto
+    editorWidth: 460,
+    editorHeight: 160,
+    frameWidth: 640,
+    frameHeight: 320,
     lineHeight: 1.5,
     letterSpacing: 0,
     customWindowBg: '', // Default to empty (theme determined)
@@ -93,6 +102,8 @@ const initialState = {
     glassOpacity: 100,
     glassBlur: 0,
     showGrain: false,
+    toast: null,
+    dialog: null,
 };
 
 export const useStore = create<CodeSnapState>()(
@@ -128,6 +139,8 @@ export const useStore = create<CodeSnapState>()(
             setGlassOpacity: (glassOpacity) => set({ glassOpacity }),
             setGlassBlur: (glassBlur) => set({ glassBlur }),
             setShowGrain: (showGrain) => set({ showGrain }),
+            setToast: (toast) => set({ toast }),
+            setDialog: (dialog) => set({ dialog }),
             reset: () => set((state) => ({
                 ...initialState,
                 appTheme: state.appTheme // Preserve current theme
@@ -135,6 +148,10 @@ export const useStore = create<CodeSnapState>()(
         }),
         {
             name: 'syntaray-storage',
+            partialize: (state) => {
+                const { toast, dialog, ...persisted } = state;
+                return persisted;
+            },
         }
     )
 );

@@ -21,14 +21,16 @@ export default function Home() {
 
       {loading && <SplashScreen onFinish={() => setLoading(false)} />}
 
-      <div className={`w-full max-w-5xl space-y-8 flex flex-col items-center transition-opacity duration-1000 ${loading ? 'opacity-0' : 'opacity-100'}`}>
-        <Controls />
-        <CodeFrame />
+      <div className={`w-full max-w-5xl space-y-8 flex-1 flex flex-col items-center justify-center transition-opacity duration-1000 ${loading ? 'opacity-0' : 'opacity-100'}`}>
+        <div className="w-full flex flex-col items-center space-y-8 py-12">
+          <Controls />
+          <CodeFrame />
+        </div>
       </div>
 
       {/* Personalized Footer */}
       {!loading && (
-        <footer className="mt-12 mb-8 animate-fade-in-up animation-delay-1000">
+        <footer className="w-full flex justify-center pb-8 animate-fade-in-up animation-delay-1000 z-10">
           <a
             href="https://github.com/ayazdoruck"
             target="_blank"

@@ -82,7 +82,7 @@ export default function Controls() {
         showGrain, setShowGrain,
         exportPixelRatio, setExportPixelRatio,
         highlightedLines, setHighlightedLines,
-        reset
+        setToast, setDialog, reset
     } = useStore();
 
     const [copying, setCopying] = useState(false);
@@ -95,7 +95,7 @@ export default function Controls() {
     const [colorMode, setColorMode] = useState<'solid' | 'gradient' | 'image'>('solid');
     const [activeStop, setActiveStop] = useState<'start' | 'end'>('start');
 
-    const [activePopover, setActivePopover] = useState<'bg' | 'settings' | 'export' | null>(null);
+    const [activePopover, setActivePopover] = useState<'bg' | 'settings' | 'export' | 'theme' | 'language' | null>(null);
     const [settingsTab, setSettingsTab] = useState<'window' | 'editor' | 'misc'>('window');
 
     const bgFileInputRef = useRef<HTMLInputElement>(null);
@@ -140,7 +140,7 @@ export default function Controls() {
         setAppTheme(appTheme === 'dark' ? 'light' : 'dark');
     };
 
-    const handleExport = async (format: 'png' | 'svg') => {
+    const handleExport = async (format: 'png' | 'svg' | 'jpeg' | 'webp') => {
         await downloadImage('code-frame-export', format, 'syntaray', exportPixelRatio);
     };
 
@@ -165,10 +165,10 @@ export default function Controls() {
                     fontFace.load().then((loadedFace) => {
                         document.fonts.add(loadedFace);
                         setFontFamily(fontName);
-                        alert(`Custom font "${fontName}" loaded!`);
+                        setToast({ message: `Custom font "${fontName}" loaded!`, type: 'success' });
                     }).catch(err => {
                         console.error('Font loading failed:', err);
-                        alert('Failed to load font file.');
+                        setToast({ message: 'Failed to load font file.', type: 'error' });
                     });
                 }
             };
@@ -194,7 +194,7 @@ export default function Controls() {
         const hash = btoa(encodeURIComponent(JSON.stringify(data)));
         const url = `${window.location.origin}${window.location.pathname}#${hash}`;
         navigator.clipboard.writeText(url).then(() => {
-            alert('Share link copied to clipboard!');
+            setToast({ message: 'Share link copied to clipboard!', type: 'success' });
         });
     };
 
@@ -231,23 +231,26 @@ export default function Controls() {
     // --- Misc Handlers ---
 
     const handleReset = () => {
-        if (confirm('Are you sure you want to reset all settings to default?')) {
-            reset();
-        }
+        setDialog({
+            title: 'Reset All Settings',
+            message: 'Are you sure you want to reset all settings to default? This action cannot be undone.',
+            onConfirm: () => {
+                reset();
+                setToast({ message: 'All settings have been reset', type: 'info' });
+            }
+        });
     };
 
     const handleExportConfig = () => {
-        const config = {
-            language, theme, background, padding, showLineNumbers,
-            fileName: useStore.getState().fileName,
-            fontFamily, fontSize, windowTheme, hasShadow, watermark,
-            code: useStore.getState().code
-        };
+        const state = useStore.getState();
+        // Exclude transient/internal state if any (like toast, dialog, copying)
+        const { toast, dialog, ...config } = state;
+
         const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'syntaray-config.json';
+        a.download = `syntaray-config-${new Date().toISOString().split('T')[0]}.json`;
         a.click();
         URL.revokeObjectURL(url);
     };
@@ -260,29 +263,51 @@ export default function Controls() {
         reader.onload = (event) => {
             try {
                 const config = JSON.parse(event.target?.result as string);
+                const store = useStore.getState();
 
-                // We destructure setters from useStore.getState() or similar if possible
-                // to avoid adding too many things to the main hook if we want.
-                // But for now let's assume they are available in the hook.
-                const state = useStore.getState();
+                // Object of valid setter keys to check against
+                const setters: Record<string, any> = {
+                    code: store.setCode,
+                    language: store.setLanguage,
+                    theme: store.setTheme,
+                    background: store.setBackground,
+                    padding: store.setPadding,
+                    showLineNumbers: store.setShowLineNumbers,
+                    showWindowControls: store.setShowWindowControls,
+                    fileName: store.setFileName,
+                    showFileName: store.setShowFileName,
+                    fontFamily: store.setFontFamily,
+                    fontSize: store.setFontSize,
+                    windowTheme: store.setWindowTheme,
+                    borderRadius: store.setBorderRadius,
+                    hasShadow: store.setHasShadow,
+                    watermark: store.setWatermark,
+                    appTheme: store.setAppTheme,
+                    editorWidth: store.setEditorWidth,
+                    editorHeight: store.setEditorHeight,
+                    frameWidth: store.setFrameWidth,
+                    frameHeight: store.setFrameHeight,
+                    lineHeight: store.setLineHeight,
+                    letterSpacing: store.setLetterSpacing,
+                    customWindowBg: store.setCustomWindowBg,
+                    highlightedLines: store.setHighlightedLines,
+                    exportPixelRatio: store.setExportPixelRatio,
+                    glassOpacity: store.setGlassOpacity,
+                    glassBlur: store.setGlassBlur,
+                    showGrain: store.setShowGrain,
+                };
 
-                if (config.theme) setTheme(config.theme);
-                if (config.background) setBackground(config.background);
-                if (config.padding !== undefined) setPadding(Number(config.padding));
-                if (config.language) setLanguage(config.language);
-                if (config.fontFamily) setFontFamily(config.fontFamily);
-                if (config.fontSize !== undefined) setFontSize(Number(config.fontSize));
-                if (typeof config.showLineNumbers === 'boolean') setShowLineNumbers(config.showLineNumbers);
-                if (config.windowTheme) setWindowTheme(config.windowTheme);
-                if (typeof config.hasShadow === 'boolean') setHasShadow(config.hasShadow);
-                if (typeof config.watermark === 'boolean') setWatermark(config.watermark);
+                // Apply each value from config if a setter exists
+                Object.keys(config).forEach(key => {
+                    if (setters[key] && config[key] !== undefined) {
+                        setters[key](config[key]);
+                    }
+                });
 
-                if (config.code) useStore.getState().setCode(config.code);
-
-                alert('Configuration imported successfully!');
+                setToast({ message: 'Configuration fully restored!', type: 'success' });
             } catch (err) {
                 console.error('Failed to parse config:', err);
-                alert('Invalid configuration file.');
+                setToast({ message: 'Invalid configuration file.', type: 'error' });
             }
         };
         reader.readAsText(file);
@@ -346,20 +371,33 @@ export default function Controls() {
     const sectionTitleClass = appTheme === 'dark' ? 'text-white/40' : 'text-black/40';
 
     // Toggle Switch Component
-    const Toggle = ({ checked, onChange }: { checked: boolean, onChange: () => void }) => (
-        <button
-            onClick={onChange}
-            className={`w-10 h-5 rounded-full relative transition-colors ${checked ? 'bg-indigo-500 shadow-inner' : 'bg-gray-600/50 hover:bg-gray-500/50'}`}
-        >
-            <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all shadow-sm ${checked ? 'left-[22px]' : 'left-0.5'}`} />
-        </button>
-    );
+    const Toggle = ({ checked, onChange }: { checked: boolean, onChange: () => void }) => {
+        const [isClicking, setIsClicking] = useState(false);
+
+        const handleClick = () => {
+            setIsClicking(true);
+            onChange();
+            setTimeout(() => setIsClicking(false), 200);
+        };
+
+        return (
+            <button
+                onClick={handleClick}
+                className={`w-11 h-6 rounded-full relative transition-all duration-500 overflow-hidden ${isClicking ? 'animate-toggle-click' : ''} ${checked ? 'bg-indigo-500 shadow-[0_0_15px_rgba(99,102,241,0.5)]' : 'bg-gray-700/50 hover:bg-gray-600/50'}`}
+            >
+                {/* Glow Background for Active State */}
+                <div className={`absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 transition-opacity duration-500 ${checked ? 'opacity-100' : 'opacity-0'}`} />
+
+                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all duration-500 shadow-lg ${checked ? 'left-[22px] scale-110 shadow-indigo-200' : 'left-1 scale-90'}`} />
+            </button>
+        );
+    };
 
     return (
         <>
 
             {/* Top Right Theme Toggle */}
-            <div className="fixed top-6 right-6 z-50">
+            <div className="fixed top-6 right-6 z-50 select-none">
                 <button
                     onClick={toggleAppTheme}
                     className={`p-3 rounded-full transition-all duration-300 ${glassyClass} hover:scale-110 hover:bg-white/10`}
@@ -368,8 +406,22 @@ export default function Controls() {
                 </button>
             </div>
 
+            {/* Bottom Right Reset Action */}
+            <div className="fixed bottom-8 right-8 z-50 select-none">
+                <button
+                    onClick={handleReset}
+                    title="Reset Everything"
+                    className={`p-4 rounded-full transition-all duration-300 shadow-2xl group active:scale-90 ${appTheme === 'dark'
+                        ? 'bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 shadow-red-500/10'
+                        : 'bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 shadow-red-200'
+                        }`}
+                >
+                    <RotateCcw size={24} className="group-hover:-rotate-180 transition-transform duration-500" />
+                </button>
+            </div>
+
             {/* Main Toolbar */}
-            <div className="w-full max-w-6xl mx-auto mb-8 z-40 relative px-4">
+            <div className="w-full max-w-6xl mx-auto mb-8 z-40 relative px-4 select-none">
                 <div className={`
              rounded-2xl p-2 pl-4 md:p-3 md:pl-6 flex flex-wrap items-center gap-3 md:gap-4 transition-all duration-300
              ${glassyClass}
@@ -387,39 +439,64 @@ export default function Controls() {
                         </span>
                     </div>
 
-                    {/* Theme Select */}
-                    <div className="relative group min-w-[140px]">
-                        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none opacity-50">
-                            <Palette size={14} />
-                        </div>
-                        <select
-                            value={theme}
-                            onChange={(e) => setTheme(e.target.value)}
-                            className={`w-full pl-9 pr-8 py-2 rounded-lg text-sm font-medium appearance-none outline-none transition-colors border cursor-pointer ${inputClass}`}
+                    {/* Theme Select (Custom) */}
+                    <div className="relative group min-w-[160px]">
+                        <button
+                            onMouseDown={(e) => { e.stopPropagation(); setActivePopover(activePopover === 'theme' ? null : 'theme'); }}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium border transition-all active:scale-[0.98] ${activePopover === 'theme' ? 'border-indigo-500 ring-4 ring-indigo-500/10' : (appTheme === 'dark' ? 'border-white/10 hover:bg-white/5' : 'border-black/10 hover:bg-black/5')} ${inputClass}`}
                         >
-                            {Object.entries(THEME_GROUPS).map(([group, themes]) => (
-                                <optgroup key={group} label={group}>
-                                    {themes.map(t => <option key={t} value={t}>{t}</option>)}
-                                </optgroup>
-                            ))}
-                        </select>
-                        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none" />
+                            <div className="flex items-center gap-2">
+                                <Palette size={14} className="opacity-50" />
+                                <span className="truncate">{theme}</span>
+                            </div>
+                            <ChevronDown size={14} className={`transition-transform duration-300 ${activePopover === 'theme' ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {activePopover === 'theme' && (
+                            <div ref={popoverRef} className={`absolute top-12 left-0 w-64 max-h-[400px] overflow-y-auto rounded-xl border z-50 p-1 animate-dropdown shadow-2xl ${popoverClass}`} onMouseDown={(e) => e.stopPropagation()}>
+                                {Object.entries(THEME_GROUPS).map(([group, themes]) => (
+                                    <div key={group} className="p-1">
+                                        <div className="px-2 py-1.5 text-[10px] font-bold uppercase tracking-widest opacity-40">{group}</div>
+                                        {themes.map(t => (
+                                            <button
+                                                key={t}
+                                                onClick={() => { setTheme(t); setActivePopover(null); }}
+                                                className={`w-full text-left px-2 py-1.5 rounded-md text-sm transition-colors flex items-center justify-between group ${theme === t ? 'bg-indigo-500 text-white' : (appTheme === 'dark' ? 'hover:bg-white/5 text-white/80' : 'hover:bg-black/5 text-black/80')}`}
+                                            >
+                                                <span>{t}</span>
+                                                {theme === t && <Check size={12} />}
+                                            </button>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
-                    {/* Language Select */}
+                    {/* Language Select (Custom) */}
                     <div className="relative group min-w-[120px]">
-                        <select
-                            value={language}
-                            onChange={(e) => setLanguage(e.target.value)}
-                            className={`w-full px-4 py-2 rounded-lg text-sm font-medium appearance-none outline-none transition-colors border cursor-pointer ${inputClass}`}
+                        <button
+                            onMouseDown={(e) => { e.stopPropagation(); setActivePopover(activePopover === 'language' ? null : 'language'); }}
+                            className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium border transition-all active:scale-[0.98] ${activePopover === 'language' ? 'border-indigo-500 ring-4 ring-indigo-500/10' : (appTheme === 'dark' ? 'border-white/10 hover:bg-white/5' : 'border-black/10 hover:bg-black/5')} ${inputClass}`}
                         >
-                            {LANGUAGES.map(l => (
-                                <option key={l} value={l}>
-                                    {l === 'auto' ? 'Auto' : l}
-                                </option>
-                            ))}
-                        </select>
-                        <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 opacity-50 pointer-events-none" />
+                            <span className="truncate">{language === 'auto' ? 'Auto' : language}</span>
+                            <ChevronDown size={14} className={`transition-transform duration-300 ${activePopover === 'language' ? 'rotate-180' : ''}`} />
+                        </button>
+
+                        {activePopover === 'language' && (
+                            <div ref={popoverRef} className={`absolute top-12 left-0 w-48 max-h-[300px] overflow-y-auto rounded-xl border z-50 p-1 animate-dropdown shadow-2xl ${popoverClass}`} onMouseDown={(e) => e.stopPropagation()}>
+                                {LANGUAGES.map(l => (
+                                    <button
+                                        key={l}
+                                        onClick={() => { setLanguage(l); setActivePopover(null); }}
+                                        className={`w-full text-left px-2 py-1.5 rounded-md text-sm transition-colors flex items-center justify-between group ${language === l ? 'bg-indigo-500 text-white' : (appTheme === 'dark' ? 'hover:bg-white/5 text-white/80' : 'hover:bg-black/5 text-black/80')}`}
+                                    >
+                                        <span>{l === 'auto' ? 'Auto' : l}</span>
+                                        {language === l && <Check size={12} />}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Background Picker Trigger */}
@@ -438,15 +515,21 @@ export default function Controls() {
                         {/* Background Popover */}
                         {activePopover === 'bg' && (
                             <div ref={popoverRef} className={`absolute top-14 left-0 w-[320px] p-4 rounded-xl border backdrop-blur-2xl z-50 animate-in fade-in slide-in-from-top-2 ${popoverClass}`} onMouseDown={(e) => e.stopPropagation()}>
-                                {/* Tabs / Switcher */}
-                                <div className="flex gap-2 mb-4 p-1 rounded-lg bg-black/5 dark:bg-black/40">
+                                {/* Tabs / Switcher with Sliding Pill */}
+                                <div className="relative flex p-1 mb-4 rounded-lg bg-black/10 dark:bg-black/40 isolation-auto">
+                                    {/* The Sliding Pill */}
+                                    <div
+                                        className="absolute top-1 bottom-1 left-1 rounded-md transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] bg-indigo-500 shadow-lg shadow-indigo-500/20"
+                                        style={{
+                                            width: 'calc(33.333% - 2.66px)',
+                                            transform: `translateX(${colorMode === 'solid' ? '0' : colorMode === 'gradient' ? '100%' : '200%'})`,
+                                        }}
+                                    />
                                     {['solid', 'gradient', 'image'].map((m) => (
                                         <button
                                             key={m}
                                             onClick={() => {
                                                 if (m === 'image') {
-                                                    // If already in image mode, trigger file pick
-                                                    // If not, just switch to the mode to show the upload UI
                                                     if (colorMode === 'image') {
                                                         bgFileInputRef.current?.click();
                                                     } else {
@@ -458,7 +541,7 @@ export default function Controls() {
                                                     else if (m === 'gradient') updateGradient(gradientStart, gradientEnd, gradientAngle);
                                                 }
                                             }}
-                                            className={`flex-1 py-1.5 text-xs font-semibold rounded-md capitalize transition-all ${colorMode === m ? (appTheme === 'dark' ? 'bg-indigo-500 text-white shadow-lg' : 'bg-white shadow-md text-indigo-600') : 'opacity-60 hover:opacity-100'}`}
+                                            className={`relative z-10 flex-1 py-1 px-2 text-xs font-semibold rounded-md capitalize transition-colors duration-200 ${colorMode === m ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
                                         >
                                             {m}
                                         </button>
@@ -561,28 +644,44 @@ export default function Controls() {
                             onMouseDown={(e) => { e.stopPropagation(); setActivePopover(activePopover === 'settings' ? null : 'settings'); }}
                             className={`p-2.5 rounded-lg border transition-all active:scale-95 ${activePopover === 'settings' ? 'bg-indigo-500/10 border-indigo-500 text-indigo-500' : (appTheme === 'dark' ? 'border-white/10 hover:bg-white/5' : 'border-black/10 hover:bg-black/5')}`}
                         >
-                            <Settings size={20} />
+                            <Settings size={20} className={`transition-transform duration-500 ${activePopover === 'settings' ? 'rotate-90' : 'rotate-0'}`} />
                         </button>
 
                         {/* Carbon-like Settings Popover */}
                         {activePopover === 'settings' && (
-                            <div ref={popoverRef} className={`absolute top-14 left-0 w-[400px] rounded-xl border z-50 flex flex-col overflow-hidden animate-in fade-in slide-in-from-top-2 ${popoverClass}`} onMouseDown={(e) => e.stopPropagation()}>
+                            <div ref={popoverRef} className={`absolute top-14 left-0 w-[400px] rounded-xl border z-50 flex flex-col overflow-hidden animate-dropdown shadow-2xl ${popoverClass}`} onMouseDown={(e) => e.stopPropagation()}>
 
                                 {/* Body: Sidebar + Content */}
                                 <div className="flex h-[320px]">
-                                    {/* Sidebar */}
-                                    <div className={`w-28 flex flex-col ${settingsSidebarClass}`}>
+                                    {/* Sidebar with Sliding Pill */}
+                                    <div className={`w-28 flex flex-col relative ${settingsSidebarClass}`}>
+                                        {/* Sliding Pill Indicator */}
+                                        <div
+                                            className="absolute left-0 w-1 bg-white rounded-r-full transition-all duration-300 ease-out z-20"
+                                            style={{
+                                                height: '44px',
+                                                top: `${['window', 'editor', 'misc'].indexOf(settingsTab) * 44}px`
+                                            }}
+                                        />
+                                        <div
+                                            className="absolute left-0 right-0 bg-white/10 transition-all duration-300 ease-out -z-10"
+                                            style={{
+                                                height: '44px',
+                                                top: `${['window', 'editor', 'misc'].indexOf(settingsTab) * 44}px`
+                                            }}
+                                        />
+
                                         {['window', 'editor', 'misc'].map((tab) => (
                                             <button
                                                 key={tab}
                                                 onClick={() => setSettingsTab(tab as any)}
-                                                className={`px-4 py-3 text-left text-sm font-semibold transition-all duration-200 flex items-center justify-between ${settingsTab === tab
-                                                    ? 'bg-indigo-500 text-white shadow-md'
+                                                className={`px-4 py-3 text-left text-sm font-semibold transition-all duration-200 flex items-center justify-between relative z-10 ${settingsTab === tab
+                                                    ? 'text-white'
                                                     : (appTheme === 'dark' ? 'text-white/60 hover:text-white hover:bg-white/5' : 'text-black/60 hover:text-black hover:bg-black/5')
                                                     }`}
                                             >
                                                 <span className="capitalize">{tab}</span>
-                                                {settingsTab === tab && <ChevronDown size={12} className="-rotate-90" />}
+                                                {settingsTab === tab && <ChevronDown size={12} className="-rotate-90 animate-in fade-in zoom-in" />}
                                             </button>
                                         ))}
                                     </div>
@@ -590,10 +689,10 @@ export default function Controls() {
                                     {/* Content Area */}
                                     <div className={`flex-1 p-4 overflow-y-auto space-y-5 transition-colors ${appTheme === 'dark' ? 'bg-[#1e1e1e]' : 'bg-white/50'}`}>
                                         {settingsTab === 'window' && (
-                                            <>
+                                            <div className="tab-content-enter space-y-5">
                                                 <div className="space-y-3">
                                                     <div className={`flex justify-between items-center text-[10px] font-bold uppercase tracking-widest ${sectionTitleClass}`}>
-                                                        <span>Window Controls</span>
+                                                        <span>Window Style</span>
                                                         <Check size={12} className="opacity-0" />
                                                     </div>
                                                     <div className="grid grid-cols-3 gap-2">
@@ -615,13 +714,13 @@ export default function Controls() {
                                                 <div className="space-y-3 pt-3 border-t border-white/5">
                                                     <div className="flex justify-between items-center text-sm">
                                                         <div className="flex items-center gap-2">
-                                                            <span>Padding</span>
+                                                            <span>Frame Padding</span>
                                                             <button onClick={() => setPadding(64)} className="text-[10px] opacity-30 hover:opacity-100 transition-opacity"><RotateCcw size={10} /></button>
                                                         </div>
                                                         <span className="text-xs opacity-50">{padding}px</span>
                                                     </div>
                                                     <input
-                                                        type="range" min="16" max="128" step="8" value={padding}
+                                                        type="range" min="8" max="128" step="4" value={padding}
                                                         onChange={(e) => setPadding(Number(e.target.value))}
                                                         className="w-full accent-indigo-500 h-1 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
                                                     />
@@ -630,7 +729,7 @@ export default function Controls() {
                                                 <div className={`space-y-3 pt-3 border-t ${sectionBorderClass}`}>
                                                     <div className="flex justify-between items-center text-sm">
                                                         <div className="flex items-center gap-2">
-                                                            <span>Border Radius</span>
+                                                            <span>Window Radius</span>
                                                             <button onClick={() => setBorderRadius(12)} className="text-[10px] opacity-30 hover:opacity-100 transition-opacity"><RotateCcw size={10} /></button>
                                                         </div>
                                                         <span className="text-xs opacity-50">{borderRadius}px</span>
@@ -642,9 +741,49 @@ export default function Controls() {
                                                     />
                                                 </div>
 
+                                                <div className={`space-y-4 pt-4 border-t ${sectionBorderClass}`}>
+                                                    <div className="flex items-center justify-between">
+                                                        <label className={`text-[10px] font-bold uppercase tracking-widest ${sectionTitleClass}`}>Window Dimensions</label>
+                                                        <button
+                                                            onClick={() => {
+                                                                setFrameWidth(640);
+                                                                setFrameHeight(320);
+                                                            }}
+                                                            className="text-[10px] opacity-30 hover:opacity-100 transition-opacity"
+                                                            title="Reset to Default"
+                                                        >
+                                                            <RotateCcw size={10} />
+                                                        </button>
+                                                    </div>
+
+                                                    <div className="space-y-3">
+                                                        <div className="flex justify-between text-xs">
+                                                            <span>Width</span>
+                                                            <span className="opacity-50">{frameWidth || 'Auto'}</span>
+                                                        </div>
+                                                        <input
+                                                            type="range" min="0" max="1400" step="10" value={frameWidth}
+                                                            onChange={(e) => setFrameWidth(Number(e.target.value))}
+                                                            className="w-full accent-indigo-500 h-1 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                                        />
+                                                    </div>
+
+                                                    <div className="space-y-3">
+                                                        <div className="flex justify-between text-xs">
+                                                            <span>Height</span>
+                                                            <span className="opacity-50">{frameHeight || 'Auto'}</span>
+                                                        </div>
+                                                        <input
+                                                            type="range" min="0" max="1200" step="10" value={frameHeight}
+                                                            onChange={(e) => setFrameHeight(Number(e.target.value))}
+                                                            className="w-full accent-indigo-500 h-1 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                                        />
+                                                    </div>
+                                                </div>
+
                                                 <div className={`space-y-3 pt-3 border-t ${sectionBorderClass}`}>
                                                     <div className="flex justify-between items-center text-sm mb-1">
-                                                        <span>File Name</span>
+                                                        <span>Show File Name</span>
                                                         <Toggle checked={showFileName} onChange={() => setShowFileName(!showFileName)} />
                                                     </div>
                                                     {showFileName && (
@@ -659,14 +798,93 @@ export default function Controls() {
                                                 </div>
 
                                                 <div className={`space-y-3 pt-3 border-t ${sectionBorderClass}`}>
+                                                    <div className="flex justify-between items-center text-sm">
+                                                        <span>Drop Shadow</span>
+                                                        <Toggle checked={hasShadow} onChange={() => setHasShadow(!hasShadow)} />
+                                                    </div>
+                                                    <div className="flex justify-between items-center text-sm">
+                                                        <span>Watermark</span>
+                                                        <Toggle checked={watermark} onChange={() => setWatermark(!watermark)} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {settingsTab === 'editor' && (
+                                            <div className="tab-content-enter space-y-5">
+                                                <div className="space-y-2">
+                                                    <label className={`text-[10px] font-bold uppercase tracking-widest ${sectionTitleClass}`}>Typography</label>
+                                                    <div className="pt-1">
+                                                        <select
+                                                            value={fontFamily === 'custom' ? 'custom' : (FONTS.some(f => f.value === fontFamily) ? fontFamily : 'custom')}
+                                                            onChange={(e) => {
+                                                                if (e.target.value === 'custom') {
+                                                                    fontInputRef.current?.click();
+                                                                } else {
+                                                                    setFontFamily(e.target.value);
+                                                                }
+                                                            }}
+                                                            className={`w-full p-2 rounded-md text-sm border outline-none ${inputClass}`}
+                                                        >
+                                                            {FONTS.map(f => <option key={f.value} value={f.value}>{f.name}</option>)}
+                                                            {!FONTS.some(f => f.value === fontFamily) && fontFamily !== 'custom' && (
+                                                                <option key={fontFamily} value={fontFamily}>{fontFamily} (Custom)</option>
+                                                            )}
+                                                        </select>
+                                                        <input ref={fontInputRef} type="file" accept=".ttf,.otf,.woff,.woff2" className="hidden" onChange={handleFontUpload} />
+                                                    </div>
+                                                </div>
+
+                                                <div className={`space-y-2 pt-2 border-t ${sectionBorderClass}`}>
+                                                    <div className="flex justify-between text-sm">
+                                                        <span>Font Size</span>
+                                                        <span className="opacity-50 text-xs">{fontSize}px</span>
+                                                    </div>
+                                                    <input
+                                                        type="range" min="12" max="24" step="1" value={fontSize}
+                                                        onChange={(e) => setFontSize(Number(e.target.value))}
+                                                        className="w-full accent-indigo-500 h-1 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                                    />
+                                                </div>
+
+                                                <div className={`space-y-2 pt-3 border-t ${sectionBorderClass}`}>
+                                                    <div className="flex justify-between text-sm">
+                                                        <span>Line Spacing</span>
+                                                        <span className="opacity-50 text-xs">{lineHeight}x</span>
+                                                    </div>
+                                                    <input
+                                                        type="range" min="1" max="2.5" step="0.1" value={lineHeight}
+                                                        onChange={(e) => setLineHeight(Number(e.target.value))}
+                                                        className="w-full accent-indigo-500 h-1 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                                    />
+                                                </div>
+
+                                                <div className={`space-y-2 pt-3 border-t ${sectionBorderClass}`}>
+                                                    <div className="flex justify-between text-sm">
+                                                        <span>Character Spacing</span>
+                                                        <span className="opacity-50 text-xs">{letterSpacing}px</span>
+                                                    </div>
+                                                    <input
+                                                        type="range" min="-2" max="10" step="0.5" value={letterSpacing}
+                                                        onChange={(e) => setLetterSpacing(Number(e.target.value))}
+                                                        className="w-full accent-indigo-500 h-1 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                                                    />
+                                                </div>
+
+                                                <div className={`flex items-center justify-between pt-3 border-t ${sectionBorderClass}`}>
+                                                    <span className="text-sm">Line Numbers</span>
+                                                    <Toggle checked={showLineNumbers} onChange={() => setShowLineNumbers(!showLineNumbers)} />
+                                                </div>
+
+                                                <div className={`space-y-3 pt-3 border-t ${sectionBorderClass}`}>
                                                     <div className="flex justify-between items-center text-sm mb-2">
-                                                        <span>Editor Background</span>
+                                                        <span>Editor Theme Color</span>
                                                         {customWindowBg && (
                                                             <button
                                                                 onClick={() => setCustomWindowBg('')}
                                                                 className="text-[10px] text-indigo-500 hover:text-indigo-400 font-bold uppercase tracking-tighter"
                                                             >
-                                                                Reset to Theme
+                                                                Reset
                                                             </button>
                                                         )}
                                                     </div>
@@ -679,33 +897,22 @@ export default function Controls() {
                                                             <HexColorPicker
                                                                 color={customWindowBg || '#1e1e1e'}
                                                                 onChange={setCustomWindowBg}
-                                                                style={{ width: '100%', height: '80px' }}
+                                                                style={{ width: '100%', height: '60px' }}
                                                             />
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                <div className={`space-y-3 pt-3 border-t ${sectionBorderClass}`}>
-                                                    <div className="flex justify-between items-center text-sm">
-                                                        <span>Drop Shadow</span>
-                                                        <Toggle checked={hasShadow} onChange={() => setHasShadow(!hasShadow)} />
-                                                    </div>
-                                                </div>
-
-                                                <div className={`space-y-3 pt-3 border-t ${sectionBorderClass}`}>
-                                                    <div className="flex justify-between items-center text-sm">
-                                                        <span>Watermark</span>
-                                                        <Toggle checked={watermark} onChange={() => setWatermark(!watermark)} />
-                                                    </div>
-                                                </div>
-
                                                 <div className={`space-y-4 pt-4 border-t ${sectionBorderClass}`}>
                                                     <div className="flex items-center justify-between">
-                                                        <label className={`text-[10px] font-bold uppercase tracking-widest ${sectionTitleClass}`}>Advanced Dimensions</label>
+                                                        <label className={`text-[10px] font-bold uppercase tracking-widest ${sectionTitleClass}`}>Editor Dimensions</label>
                                                         <button
-                                                            onClick={() => { setEditorWidth(0); setEditorHeight(0); setFrameWidth(0); }}
+                                                            onClick={() => {
+                                                                setEditorWidth(460);
+                                                                setEditorHeight(160);
+                                                            }}
                                                             className="text-[10px] opacity-30 hover:opacity-100 transition-opacity"
-                                                            title="Reset Dimensions"
+                                                            title="Reset to Default"
                                                         >
                                                             <RotateCcw size={10} />
                                                         </button>
@@ -713,7 +920,7 @@ export default function Controls() {
 
                                                     <div className="space-y-3">
                                                         <div className="flex justify-between text-xs">
-                                                            <span>Editor Width</span>
+                                                            <span>Width</span>
                                                             <span className="opacity-50">{editorWidth || 'Auto'}</span>
                                                         </div>
                                                         <input
@@ -725,7 +932,7 @@ export default function Controls() {
 
                                                     <div className="space-y-3">
                                                         <div className="flex justify-between text-xs">
-                                                            <span>Editor Height</span>
+                                                            <span>Height</span>
                                                             <span className="opacity-50">{editorHeight || 'Auto'}</span>
                                                         </div>
                                                         <input
@@ -734,97 +941,13 @@ export default function Controls() {
                                                             className="w-full accent-indigo-500 h-1 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
                                                         />
                                                     </div>
-
-                                                    <div className="space-y-3">
-                                                        <div className="flex justify-between text-xs">
-                                                            <span>Frame Width</span>
-                                                            <span className="opacity-50">{frameWidth || 'Auto'}</span>
-                                                        </div>
-                                                        <input
-                                                            type="range" min="0" max="1600" step="10" value={frameWidth}
-                                                            onChange={(e) => setFrameWidth(Number(e.target.value))}
-                                                            className="w-full accent-indigo-500 h-1 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                                                        />
-                                                    </div>
                                                 </div>
-                                            </>
-                                        )}
-
-                                        {settingsTab === 'editor' && (
-                                            <>
-                                                <div className="space-y-2">
-                                                    <label className={`text-[10px] font-bold uppercase tracking-widest ${sectionTitleClass}`}>Font Family</label>
-                                                    <select
-                                                        value={fontFamily === 'custom' ? 'custom' : (FONTS.some(f => f.value === fontFamily) ? fontFamily : 'custom')}
-                                                        onChange={(e) => {
-                                                            if (e.target.value === 'custom') {
-                                                                fontInputRef.current?.click();
-                                                            } else {
-                                                                setFontFamily(e.target.value);
-                                                            }
-                                                        }}
-                                                        className={`w-full p-2 rounded-md text-sm border outline-none ${inputClass}`}
-                                                    >
-                                                        {FONTS.map(f => <option key={f.value} value={f.value}>{f.name}</option>)}
-                                                        {!FONTS.some(f => f.value === fontFamily) && fontFamily !== 'custom' && (
-                                                            <option key={fontFamily} value={fontFamily}>{fontFamily} (Custom)</option>
-                                                        )}
-                                                    </select>
-                                                    <input ref={fontInputRef} type="file" accept=".ttf,.otf,.woff,.woff2" className="hidden" onChange={handleFontUpload} />
-                                                </div>
-
-                                                <div className={`space-y-2 pt-2 border-t ${sectionBorderClass}`}>
-                                                    <div className="flex justify-between text-sm">
-                                                        <span>Size</span>
-                                                        <span className="opacity-50 text-xs">{fontSize}px</span>
-                                                    </div>
-                                                    <input
-                                                        type="range" min="12" max="24" step="1" value={fontSize}
-                                                        onChange={(e) => setFontSize(Number(e.target.value))}
-                                                        className="w-full accent-indigo-500 h-1 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                                                    />
-                                                </div>
-
-                                                <div className={`flex items-center justify-between pt-2 border-t ${sectionBorderClass}`}>
-                                                    <span className="text-sm">Line Numbers</span>
-                                                    <Toggle checked={showLineNumbers} onChange={() => setShowLineNumbers(!showLineNumbers)} />
-                                                </div>
-
-                                                <div className={`space-y-2 pt-3 border-t ${sectionBorderClass}`}>
-                                                    <div className="flex justify-between text-sm text-sm">
-                                                        <div className="flex items-center gap-2">
-                                                            <span>Line Spacing</span>
-                                                            <button onClick={() => setLineHeight(1.5)} className="text-[10px] opacity-30 hover:opacity-100 transition-opacity"><RotateCcw size={10} /></button>
-                                                        </div>
-                                                        <span className="opacity-50 text-xs">{lineHeight}x</span>
-                                                    </div>
-                                                    <input
-                                                        type="range" min="1" max="2.5" step="0.1" value={lineHeight}
-                                                        onChange={(e) => setLineHeight(Number(e.target.value))}
-                                                        className="w-full accent-indigo-500 h-1 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                                                    />
-                                                </div>
-
-                                                <div className={`space-y-2 pt-3 border-t ${sectionBorderClass}`}>
-                                                    <div className="flex justify-between text-sm">
-                                                        <div className="flex items-center gap-2">
-                                                            <span>Character Spacing</span>
-                                                            <button onClick={() => setLetterSpacing(0)} className="text-[10px] opacity-30 hover:opacity-100 transition-opacity"><RotateCcw size={10} /></button>
-                                                        </div>
-                                                        <span className="opacity-50 text-xs">{letterSpacing}px</span>
-                                                    </div>
-                                                    <input
-                                                        type="range" min="-2" max="10" step="0.5" value={letterSpacing}
-                                                        onChange={(e) => setLetterSpacing(Number(e.target.value))}
-                                                        className="w-full accent-indigo-500 h-1 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                                                    />
-                                                </div>
-                                            </>
+                                            </div>
                                         )}
 
 
                                         {settingsTab === 'misc' && (
-                                            <div className="space-y-4">
+                                            <div className="tab-content-enter space-y-4">
                                                 <div className={`p-3 rounded-lg border text-xs leading-relaxed ${appTheme === 'dark' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-200' : 'bg-indigo-50/50 border-indigo-200 text-indigo-700'}`}>
                                                     Manage your SyntaRay configuration or share your current design.
                                                 </div>
@@ -839,14 +962,22 @@ export default function Controls() {
 
                                                 <div className="space-y-3 pt-2 border-t border-white/5">
                                                     <label className={`text-[10px] font-bold uppercase tracking-widest ${sectionTitleClass}`}>Export Quality</label>
-                                                    <div className="flex gap-2">
-                                                        {[1, 2, 4].map(q => (
+                                                    <div className="relative flex p-1 rounded-lg bg-black/10 dark:bg-black/40 isolation-auto">
+                                                        {/* The Sliding Pill */}
+                                                        <div
+                                                            className="absolute top-1 bottom-1 left-1 rounded-md transition-all duration-300 ease-[cubic-bezier(0.23,1,0.32,1)] bg-indigo-500 shadow-lg shadow-indigo-500/20"
+                                                            style={{
+                                                                width: 'calc(33.333% - 2.66px)',
+                                                                transform: `translateX(${exportPixelRatio === 1 ? '0' : exportPixelRatio === 2 ? '100%' : '200%'})`,
+                                                            }}
+                                                        />
+                                                        {[1, 2, 4].map((ratio) => (
                                                             <button
-                                                                key={q}
-                                                                onClick={() => setExportPixelRatio(q)}
-                                                                className={`flex-1 py-1.5 rounded-md border text-[10px] font-bold transition-all ${exportPixelRatio === q ? 'bg-indigo-500 border-transparent text-white' : 'bg-white/5 border-white/10 opacity-60'}`}
+                                                                key={ratio}
+                                                                onClick={() => setExportPixelRatio(ratio)}
+                                                                className={`relative z-10 flex-1 py-1 px-2 text-[10px] font-bold transition-colors duration-200 ${exportPixelRatio === ratio ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
                                                             >
-                                                                {q}x
+                                                                {ratio}x
                                                             </button>
                                                         ))}
                                                     </div>
@@ -924,18 +1055,34 @@ export default function Controls() {
                             </button>
 
                             {activePopover === 'export' && (
-                                <div ref={popoverRef} className={`absolute right-0 top-14 w-[160px] p-2 rounded-xl border backdrop-blur-2xl z-50 animate-in fade-in slide-in-from-top-2 ${popoverClass}`} onMouseDown={(e) => e.stopPropagation()}>
+                                <div ref={popoverRef} className={`absolute right-0 top-14 w-[160px] p-2 rounded-xl border backdrop-blur-2xl z-50 animate-dropdown shadow-2xl ${popoverClass}`} onMouseDown={(e) => e.stopPropagation()}>
                                     <button
                                         onClick={() => handleExport('png')}
-                                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-indigo-500/10 hover:text-indigo-500 transition-colors text-left"
+                                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-indigo-500/10 hover:text-indigo-500 transition-colors text-left group"
                                     >
                                         <span className="font-medium text-sm">PNG Image</span>
+                                        <div className="text-[10px] opacity-40 group-hover:opacity-100 font-bold">.png</div>
+                                    </button>
+                                    <button
+                                        onClick={() => handleExport('jpeg')}
+                                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-indigo-500/10 hover:text-indigo-500 transition-colors text-left group"
+                                    >
+                                        <span className="font-medium text-sm">JPG Image</span>
+                                        <div className="text-[10px] opacity-40 group-hover:opacity-100 font-bold">.jpg</div>
+                                    </button>
+                                    <button
+                                        onClick={() => handleExport('webp')}
+                                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-indigo-500/10 hover:text-indigo-500 transition-colors text-left group"
+                                    >
+                                        <span className="font-medium text-sm">WebP Image</span>
+                                        <div className="text-[10px] opacity-40 group-hover:opacity-100 font-bold">.webp</div>
                                     </button>
                                     <button
                                         onClick={() => handleExport('svg')}
-                                        className="w-full flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-indigo-500/10 hover:text-indigo-500 transition-colors text-left"
+                                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-indigo-500/10 hover:text-indigo-500 transition-colors text-left group"
                                     >
                                         <span className="font-medium text-sm">SVG Vector</span>
+                                        <div className="text-[10px] opacity-40 group-hover:opacity-100 font-bold">.svg</div>
                                     </button>
                                 </div>
                             )}
