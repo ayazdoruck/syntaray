@@ -102,11 +102,13 @@ npm start
 
 <div align="center">
 
-### Dark Mode with One Dark Pro Theme
-<img src="./image.png" alt="Dark Mode Preview" width="100%" />
+### 🌙 Dark Mode - One Dark Pro Theme
+<img src="./dark.png" alt="Dark Mode Preview" width="100%" />
 
-### Light Mode with Custom Gradient
-*Coming soon - Add your screenshots here*
+<br/><br/>
+
+### ☀️ Light Mode - Custom Gradient
+<img src="./light.png" alt="Light Mode Preview" width="100%" />
 
 </div>
 
