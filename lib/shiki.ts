@@ -26,18 +26,37 @@ export const initializeHighlighter = async () => {
     return highlighterInstance;
 };
 
-export const highlightCode = async (code: string, lang: string, theme: string) => {
+export const highlightCode = async (code: string, lang: string, theme: string, showLineNumbers?: boolean) => {
     const highlighter = await initializeHighlighter();
+
+    const options: any = {
+        lang,
+        theme,
+    };
+
+    if (showLineNumbers) {
+        options.transformers = [
+            {
+                line(node: any, line: number) {
+                    node.children.unshift({
+                        type: 'element',
+                        tagName: 'span',
+                        properties: {
+                            class: 'line-number',
+                            style: 'display: inline-block; width: 1.5rem; margin-right: 1.5rem; text-align: right; color: rgba(128, 128, 128, 0.4); font-size: 0.9em; user-select: none;'
+                        },
+                        children: [{ type: 'text', value: line.toString() }]
+                    });
+                }
+            }
+        ];
+    }
+
     try {
-        return highlighter.codeToHtml(code, {
-            lang,
-            theme,
-        });
+        return highlighter.codeToHtml(code, options);
     } catch (e) {
-        return highlighter.codeToHtml(code, {
-            lang: 'text',
-            theme,
-        });
+        options.lang = 'text';
+        return highlighter.codeToHtml(code, options);
     }
 };
 

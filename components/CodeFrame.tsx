@@ -52,7 +52,7 @@ export default function CodeFrame() {
 
             try {
                 const [html, colors] = await Promise.all([
-                    highlightCode(code, langToUse, theme),
+                    highlightCode(code, langToUse, theme, showLineNumbers),
                     getThemeColors(theme)
                 ]);
                 setHighlightedHtml(html);
@@ -60,12 +60,12 @@ export default function CodeFrame() {
             } catch (error) {
                 console.error('Highlighting failed:', error);
                 // Fallback to text highlighting
-                const fallbackHtml = await highlightCode(code, 'text', theme);
+                const fallbackHtml = await highlightCode(code, 'text', theme, showLineNumbers);
                 setHighlightedHtml(fallbackHtml);
             }
         }, 10); // Reduced to 15ms for instant feedback while keeping minimal debouncing
         return () => clearTimeout(t);
-    }, [code, language, theme]);
+    }, [code, language, theme, showLineNumbers]);
 
     // Internal toggle logic mapping
     const showControls = windowTheme !== 'none';
@@ -248,18 +248,7 @@ export default function CodeFrame() {
             font-family: inherit !important;
           }
            code {
-            counter-reset: line;
             font-family: inherit !important;
-          }
-          code .line::before {
-            content: counter(line);
-            counter-increment: line;
-            display: ${showLineNumbers ? 'inline-block' : 'none'};
-            width: 1.5rem;
-            margin-right: 1.5rem;
-            text-align: right;
-            color: rgba(128, 128, 128, 0.4); 
-            font-size: 0.9em;
           }
           textarea::-webkit-scrollbar {
              width: 0px;
