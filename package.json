@@ -1,6 +1,7 @@
 {
   "name": "codesnap-art",
   "version": "0.1.0",
+  "description": "Minimalist code visualization tool with professional layout controls.",
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",

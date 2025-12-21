@@ -9,7 +9,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "SyntaRay | Beautiful Code Snippets",
-  description: "Generate beautiful, customizable code images for your social media.",
+  description: "Minimalist code visualization tool with professional layout controls.",
 };
 
 export default function RootLayout({

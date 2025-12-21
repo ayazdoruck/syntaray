@@ -10,7 +10,7 @@
 
 ---
 
-**SyntaRay** is a high-performance, aesthetically driven code visualization tool designed for developers who value minimalism and precision. Transform your raw code snippets into professional, social-media-ready snapshots with just a few clicks.
+**SyntaRay** is a minimalist code visualization tool with professional layout controls. Transform your raw code snippets into high-quality snapshots with precision.
 
 ### ✨ Key Features
 
