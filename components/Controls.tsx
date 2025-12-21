@@ -77,6 +77,11 @@ export default function Controls() {
         letterSpacing, setLetterSpacing,
         customWindowBg, setCustomWindowBg,
         borderRadius, setBorderRadius,
+        glassOpacity, setGlassOpacity,
+        glassBlur, setGlassBlur,
+        showGrain, setShowGrain,
+        exportPixelRatio, setExportPixelRatio,
+        highlightedLines, setHighlightedLines,
         reset
     } = useStore();
 
@@ -136,13 +141,13 @@ export default function Controls() {
     };
 
     const handleExport = async (format: 'png' | 'svg') => {
-        await downloadImage('code-frame-export', format, 'syntaray');
+        await downloadImage('code-frame-export', format, 'syntaray', exportPixelRatio);
     };
 
     const handleCopy = async () => {
         setCopying(true);
         try {
-            await copyImageToClipboard('code-frame-export');
+            await copyImageToClipboard('code-frame-export', exportPixelRatio);
             setTimeout(() => setCopying(false), 2000);
         } catch {
             setCopying(false);
@@ -170,6 +175,58 @@ export default function Controls() {
             reader.readAsDataURL(file);
         }
     };
+
+    const handleCopyShareLink = () => {
+        const state = useStore.getState();
+        const data = {
+            c: state.code,
+            l: state.language,
+            t: state.theme,
+            b: state.background,
+            p: state.padding,
+            f: state.fontFamily,
+            fs: state.fontSize,
+            wt: state.windowTheme,
+            go: state.glassOpacity,
+            gb: state.glassBlur,
+            sg: state.showGrain,
+        };
+        const hash = btoa(encodeURIComponent(JSON.stringify(data)));
+        const url = `${window.location.origin}${window.location.pathname}#${hash}`;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('Share link copied to clipboard!');
+        });
+    };
+
+    // Auto-import from hash
+    useEffect(() => {
+        const handleHashChange = () => {
+            const hash = window.location.hash.slice(1);
+            if (hash) {
+                try {
+                    const data = JSON.parse(decodeURIComponent(atob(hash)));
+                    const store = useStore.getState();
+                    if (data.c) store.setCode(data.c);
+                    if (data.l) store.setLanguage(data.l);
+                    if (data.t) store.setTheme(data.t);
+                    if (data.b) store.setBackground(data.b);
+                    if (data.p) store.setPadding(data.p);
+                    if (data.f) store.setFontFamily(data.f);
+                    if (data.fs) store.setFontSize(data.fs);
+                    if (data.wt) store.setWindowTheme(data.wt);
+                    if (data.go !== undefined) store.setGlassOpacity(data.go);
+                    if (data.gb !== undefined) store.setGlassBlur(data.gb);
+                    if (data.sg !== undefined) store.setShowGrain(data.sg);
+                    window.history.replaceState(null, '', ' '); // Clean hash
+                } catch (e) {
+                    console.error('Failed to parse share link data', e);
+                }
+            }
+        };
+        handleHashChange();
+        window.addEventListener('hashchange', handleHashChange);
+        return () => window.removeEventListener('hashchange', handleHashChange);
+    }, []);
 
     // --- Misc Handlers ---
 
@@ -765,13 +822,37 @@ export default function Controls() {
                                             </>
                                         )}
 
+
                                         {settingsTab === 'misc' && (
                                             <div className="space-y-4">
                                                 <div className={`p-3 rounded-lg border text-xs leading-relaxed ${appTheme === 'dark' ? 'bg-indigo-500/10 border-indigo-500/20 text-indigo-200' : 'bg-indigo-50/50 border-indigo-200 text-indigo-700'}`}>
-                                                    Manage your SyntaRay configuration or reset to defaults.
+                                                    Manage your SyntaRay configuration or share your current design.
                                                 </div>
 
-                                                <div className="grid grid-cols-2 gap-3">
+                                                <button
+                                                    onClick={handleCopyShareLink}
+                                                    className="w-full flex items-center justify-center gap-2 p-3 rounded-lg bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
+                                                >
+                                                    <Zap size={14} />
+                                                    Copy Share Link
+                                                </button>
+
+                                                <div className="space-y-3 pt-2 border-t border-white/5">
+                                                    <label className={`text-[10px] font-bold uppercase tracking-widest ${sectionTitleClass}`}>Export Quality</label>
+                                                    <div className="flex gap-2">
+                                                        {[1, 2, 4].map(q => (
+                                                            <button
+                                                                key={q}
+                                                                onClick={() => setExportPixelRatio(q)}
+                                                                className={`flex-1 py-1.5 rounded-md border text-[10px] font-bold transition-all ${exportPixelRatio === q ? 'bg-indigo-500 border-transparent text-white' : 'bg-white/5 border-white/10 opacity-60'}`}
+                                                            >
+                                                                {q}x
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/5">
                                                     <button
                                                         onClick={() => configFileInputRef.current?.click()}
                                                         className={`flex items-center justify-center gap-2 p-3 rounded-lg border transition-all text-xs font-semibold ${appTheme === 'dark'
@@ -799,15 +880,14 @@ export default function Controls() {
                                                         Export Config
                                                     </button>
 
-
                                                     <button
                                                         onClick={handleReset}
-                                                        className={`flex items-center justify-center gap-2 p-3 rounded-lg border transition-all text-xs font-semibold ${appTheme === 'dark'
+                                                        className={`col-span-2 flex items-center justify-center gap-2 p-3 rounded-lg border transition-all text-xs font-bold ${appTheme === 'dark'
                                                             ? 'bg-red-500/10 hover:bg-red-500/20 border-red-500/20 text-red-400'
                                                             : 'bg-red-50 hover:bg-red-100 border-red-100 text-red-600'}`}
                                                     >
                                                         <RotateCcw size={14} />
-                                                        Reset Settings
+                                                        Reset All Settings to Default
                                                     </button>
                                                 </div>
                                             </div>
@@ -862,7 +942,7 @@ export default function Controls() {
                         </div>
                     </div>
                 </div>
-            </div >
+            </div>
         </>
     );
 }

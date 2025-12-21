@@ -26,7 +26,7 @@ export const initializeHighlighter = async () => {
     return highlighterInstance;
 };
 
-export const highlightCode = async (code: string, lang: string, theme: string, showLineNumbers?: boolean) => {
+export const highlightCode = async (code: string, lang: string, theme: string, showLineNumbers?: boolean, highlightedLines: number[] = []) => {
     const highlighter = await initializeHighlighter();
 
     const options: any = {
@@ -34,10 +34,16 @@ export const highlightCode = async (code: string, lang: string, theme: string, s
         theme,
     };
 
-    if (showLineNumbers) {
-        options.transformers = [
-            {
-                line(node: any, line: number) {
+    options.transformers = [
+        {
+            line(node: any, line: number) {
+                // Dimming logic
+                if (highlightedLines.length > 0 && !highlightedLines.includes(line)) {
+                    node.properties.style = (node.properties.style || '') + 'opacity: 0.3; filter: grayscale(0.5); transition: opacity 0.3s;';
+                }
+
+                // Line numbers
+                if (showLineNumbers) {
                     node.children.unshift({
                         type: 'element',
                         tagName: 'span',
@@ -49,8 +55,8 @@ export const highlightCode = async (code: string, lang: string, theme: string, s
                     });
                 }
             }
-        ];
-    }
+        }
+    ];
 
     try {
         return highlighter.codeToHtml(code, options);

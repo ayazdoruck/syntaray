@@ -25,6 +25,11 @@ interface CodeSnapState {
     lineHeight: number;
     letterSpacing: number;
     customWindowBg: string; // New field for custom editor background
+    highlightedLines: number[];
+    exportPixelRatio: number;
+    glassOpacity: number;
+    glassBlur: number;
+    showGrain: boolean;
 
     setCode: (code: string) => void;
     setLanguage: (lang: string) => void;
@@ -49,6 +54,11 @@ interface CodeSnapState {
     setLineHeight: (height: number) => void;
     setLetterSpacing: (spacing: number) => void;
     setCustomWindowBg: (color: string) => void;
+    setHighlightedLines: (lines: number[]) => void;
+    setExportPixelRatio: (ratio: number) => void;
+    setGlassOpacity: (opacity: number) => void;
+    setGlassBlur: (blur: number) => void;
+    setShowGrain: (show: boolean) => void;
     reset: () => void;
 }
 
@@ -78,6 +88,11 @@ const initialState = {
     letterSpacing: 0,
     customWindowBg: '', // Default to empty (theme determined)
     borderRadius: 12,
+    highlightedLines: [],
+    exportPixelRatio: 2,
+    glassOpacity: 100,
+    glassBlur: 0,
+    showGrain: false,
 };
 
 export const useStore = create<CodeSnapState>()(
@@ -108,6 +123,11 @@ export const useStore = create<CodeSnapState>()(
             setLetterSpacing: (letterSpacing) => set({ letterSpacing }),
             setCustomWindowBg: (customWindowBg) => set({ customWindowBg }),
             setBorderRadius: (borderRadius) => set({ borderRadius }),
+            setHighlightedLines: (highlightedLines) => set({ highlightedLines }),
+            setExportPixelRatio: (exportPixelRatio) => set({ exportPixelRatio }),
+            setGlassOpacity: (glassOpacity) => set({ glassOpacity }),
+            setGlassBlur: (glassBlur) => set({ glassBlur }),
+            setShowGrain: (showGrain) => set({ showGrain }),
             reset: () => set((state) => ({
                 ...initialState,
                 appTheme: state.appTheme // Preserve current theme

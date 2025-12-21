@@ -11,7 +11,8 @@ export default function CodeFrame() {
         showLineNumbers, setCode, fileName, showFileName, fontFamily,
         fontSize, windowTheme, hasShadow, watermark, showWindowControls,
         editorWidth, editorHeight, frameWidth, frameHeight, lineHeight, letterSpacing,
-        customWindowBg, borderRadius
+        customWindowBg, borderRadius, highlightedLines, setHighlightedLines,
+        glassOpacity, glassBlur, showGrain
     } = useStore();
 
     const [highlightedHtml, setHighlightedHtml] = useState('');
@@ -25,20 +26,36 @@ export default function CodeFrame() {
 
             if (language === 'auto') {
                 try {
-                    // 1. Detect using highlight.js
-                    const result = hljs.highlightAuto(code);
-                    const detected = result.language;
+                    // 1. Detect using highlight.js with a restricted list for better accuracy
+                    const commonLangs = [
+                        'javascript', 'typescript', 'python', 'html', 'css', 'json',
+                        'bash', 'go', 'rust', 'java', 'cpp', 'csharp', 'php',
+                        'ruby', 'sql', 'yaml', 'markdown'
+                    ];
+                    const result = hljs.highlightAuto(code, commonLangs);
+                    let detected = result.language;
 
-                    // 2. Simple mapping for common mismatches/aliases if needed
-                    // Shiki serves most standard names well. 
-                    // However, hljs might return 'js' while shiki wants 'javascript' etc.
-                    // For now, we trust the output or fallback to text.
-                    langToUse = detected || 'text';
+                    // 2. Map aliases to Shiki-supported names
+                    const aliasMap: Record<string, string> = {
+                        'js': 'javascript',
+                        'ts': 'typescript',
+                        'py': 'python',
+                        'rb': 'ruby',
+                        'sh': 'bash',
+                        'yml': 'yaml',
+                        'md': 'markdown'
+                    };
 
-                    // Simple heuristic override if detection fails for specific patterns
-                    if (!detected) {
-                        if (code.trim().startsWith('<') || code.includes('</div>')) langToUse = 'html';
-                        else if (code.includes('import ') || code.includes('const ')) langToUse = 'javascript';
+                    langToUse = (detected && aliasMap[detected]) || detected || 'text';
+
+                    // 3. Robust heuristics for short snippets or detection misses
+                    if (!detected || langToUse === 'text') {
+                        const trimmed = code.trim();
+                        if (trimmed.startsWith('<') || trimmed.includes('</')) langToUse = 'html';
+                        else if (trimmed.includes('import ') || trimmed.includes('const ') || trimmed.includes('export ')) langToUse = 'javascript';
+                        else if (trimmed.includes('def ') || trimmed.includes('print(')) langToUse = 'python';
+                        else if (trimmed.includes('func ') && trimmed.includes(' package ')) langToUse = 'go';
+                        else if (trimmed.startsWith('{') || trimmed.startsWith('[')) langToUse = 'json';
                     }
 
                     setDetectedLanguage(langToUse);
@@ -52,7 +69,7 @@ export default function CodeFrame() {
 
             try {
                 const [html, colors] = await Promise.all([
-                    highlightCode(code, langToUse, theme, showLineNumbers),
+                    highlightCode(code, langToUse, theme, showLineNumbers, highlightedLines),
                     getThemeColors(theme)
                 ]);
                 setHighlightedHtml(html);
@@ -60,12 +77,12 @@ export default function CodeFrame() {
             } catch (error) {
                 console.error('Highlighting failed:', error);
                 // Fallback to text highlighting
-                const fallbackHtml = await highlightCode(code, 'text', theme, showLineNumbers);
+                const fallbackHtml = await highlightCode(code, 'text', theme, showLineNumbers, highlightedLines);
                 setHighlightedHtml(fallbackHtml);
             }
         }, 10); // Reduced to 15ms for instant feedback while keeping minimal debouncing
         return () => clearTimeout(t);
-    }, [code, language, theme, showLineNumbers]);
+    }, [code, language, theme, showLineNumbers, highlightedLines]);
 
     // Internal toggle logic mapping
     const showControls = windowTheme !== 'none';
@@ -138,7 +155,9 @@ export default function CodeFrame() {
                 <div
                     className={`relative overflow-hidden transition-shadow duration-300 ${hasShadow ? 'shadow-2xl' : ''}`}
                     style={{
-                        backgroundColor: customWindowBg || windowBg,
+                        backgroundColor: (glassBlur > 0 || glassOpacity < 100)
+                            ? 'transparent'
+                            : (customWindowBg || windowBg),
                         boxShadow: hasShadow ? '0 25px 50px -12px rgba(0, 0, 0, 0.5)' : 'none',
                         width: editorWidth > 0 ? `${editorWidth}px` : undefined,
                         height: editorHeight > 0 ? `${editorHeight}px` : undefined,
@@ -146,10 +165,35 @@ export default function CodeFrame() {
                         borderRadius: `${borderRadius}px`,
                     }}
                 >
+                    {/* Glass & Grain Layers */}
+                    <div className="absolute inset-0 z-0 pointer-events-none" style={{ borderRadius: 'inherit', overflow: 'hidden', transform: 'translateZ(0)' }}>
+                        {(glassBlur > 0 || glassOpacity < 100) && (
+                            <div
+                                className="absolute inset-0 transition-all duration-300"
+                                style={{
+                                    backgroundColor: customWindowBg || windowBg,
+                                    opacity: glassOpacity / 100,
+                                    backdropFilter: `blur(${glassBlur}px)`,
+                                    WebkitBackdropFilter: `blur(${glassBlur}px)`,
+                                    borderRadius: 'inherit',
+                                }}
+                            />
+                        )}
+                        {showGrain && (
+                            <div
+                                className="absolute inset-0 opacity-[0.12] mix-blend-soft-light"
+                                style={{
+                                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+                                    borderRadius: 'inherit'
+                                }}
+                            />
+                        )}
+                    </div>
+
                     {/* Window Title Bar */}
                     <div
-                        className="h-12 px-4 flex items-center justify-between select-none"
-                        style={{ backgroundColor: 'rgba(0,0,0,0.05)' }}
+                        className="h-12 px-4 flex items-center justify-between select-none relative z-10"
+                        style={{ backgroundColor: 'rgba(0,0,0,0.1)' }}
                     >
                         <div className="flex gap-2 w-20">
                             {showControls && windowTheme === 'mac' && (
@@ -216,15 +260,32 @@ export default function CodeFrame() {
                                 letterSpacing: `${letterSpacing}px`,
                                 paddingLeft: showLineNumbers ? '4.5rem' : '1.5rem',
                             }}
+                            onMouseDown={(e) => {
+                                // Toggle Line Highlight if ALT is held
+                                if (e.altKey) {
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    const y = e.clientY - rect.top - 24; // 24 is p-6
+                                    const line = Math.floor(y / (fontSize * lineHeight)) + 1;
+                                    if (line > 0 && line <= code.split('\n').length) {
+                                        if (highlightedLines.includes(line)) {
+                                            setHighlightedLines(highlightedLines.filter(l => l !== line));
+                                        } else {
+                                            setHighlightedLines([...highlightedLines, line]);
+                                        }
+                                        e.preventDefault();
+                                    }
+                                }
+                            }}
                         />
 
                         <div
-                            className="p-6 overflow-hidden pointer-events-none font-mono"
+                            className="p-6 overflow-hidden pointer-events-none font-mono relative z-0"
                             style={{
                                 fontFamily: `"${fontFamily}", ui-monospace, SFMono-Regular, monospace`,
                                 fontSize: `${fontSize}px`,
                                 lineHeight: lineHeight,
                                 letterSpacing: `${letterSpacing}px`,
+                                backgroundColor: 'transparent',
                             }}
                             dangerouslySetInnerHTML={{ __html: highlightedHtml }}
                         />
