@@ -7,6 +7,35 @@ export default function LandingPage() {
 
       {/* Dynamic Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
+
+        {/* Rotating Star Field */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[200vw] h-[200vw] animate-spin-slow opacity-30">
+          {[...Array(12)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-1 h-1 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)]"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                opacity: Math.random() * 0.5 + 0.2,
+                transform: `scale(${Math.random() * 0.5 + 0.5})`,
+                animation: `pulse ${Math.random() * 3 + 2}s infinite ease-in-out`
+              }}
+            />
+          ))}
+          {[...Array(20)].map((_, i) => (
+            <div
+              key={`sm-${i}`}
+              className="absolute w-0.5 h-0.5 bg-indigo-200 rounded-full"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                opacity: Math.random() * 0.4 + 0.1,
+              }}
+            />
+          ))}
+        </div>
+
         <div className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-purple-600/20 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '4s' }} />
         <div className="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }} />
         <div className="absolute top-[40%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-blue-500/10 rounded-full blur-[100px] rotate-12" />
