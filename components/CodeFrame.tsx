@@ -150,7 +150,7 @@ export default function CodeFrame() {
     }, [code, showLineNumbers, fontSize, fontFamily, lineHeight, letterSpacing]);
 
     return (
-        <div className="w-full flex justify-center p-4 md:p-8 pt-12 md:pt-5 overflow-x-hidden z-10 relative">
+        <div className="w-full flex justify-center p-4 md:p-8 pt-12 md:pt-5 overflow-x-auto md:overflow-x-hidden z-10 relative no-scrollbar">
             <div className="relative group/canvas">
                 {/* Modern Glassy Frame Wrapper */}
                 <div className="absolute -inset-4 md:-inset-8 bg-gradient-to-br from-indigo-500/5 via-transparent to-purple-500/5 rounded-[3rem] blur-xl opacity-0 group-hover/canvas:opacity-100 transition-opacity duration-700 pointer-events-none" />

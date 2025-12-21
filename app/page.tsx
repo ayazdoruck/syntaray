@@ -1,80 +1,107 @@
-'use client';
+import Link from 'next/link';
+import { ArrowRight, Sparkles, Zap, Palette, Share2, Code2 } from 'lucide-react';
 
-import React, { useState } from 'react';
-import { useStore } from '@/lib/store';
-import Controls from '@/components/Controls';
-import CodeFrame from '@/components/CodeFrame';
-import SplashScreen from '@/components/SplashScreen';
-
-export default function Home() {
-  const [loading, setLoading] = useState(true);
-  const { appTheme } = useStore();
-
+export default function LandingPage() {
   return (
-    <main className="flex-1 flex flex-col items-center justify-center p-4 md:p-8 min-h-screen relative overflow-hidden">
-      {/* Global Ambient Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none -z-10 transition-colors duration-1000">
-        <div className={`absolute top-[-15%] right-[-15%] w-[800px] h-[800px] rounded-full blur-[180px] animate-pulse transition-all duration-1000 ${appTheme === 'dark' ? 'bg-purple-600/10' : 'bg-purple-600/30'}`} />
-        <div className={`absolute bottom-[-15%] left-[-15%] w-[900px] h-[900px] rounded-full blur-[180px] animate-pulse transition-all duration-1000 ${appTheme === 'dark' ? 'bg-indigo-600/10' : 'bg-indigo-600/30'}`} style={{ animationDelay: '2s' }} />
-        <div className={`absolute top-[15%] left-[10%] w-[500px] h-[500px] rounded-full blur-[150px] transition-all duration-1000 ${appTheme === 'dark' ? 'bg-pink-600/5' : 'bg-pink-600/15'}`} />
+    <main className="flex-1 flex flex-col items-center justify-center min-h-screen relative overflow-hidden bg-[#0a0a0a] text-white selection:bg-indigo-500/30">
+
+      {/* Dynamic Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-[-20%] right-[-10%] w-[800px] h-[800px] bg-purple-600/20 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '4s' }} />
+        <div className="absolute bottom-[-20%] left-[-10%] w-[600px] h-[600px] bg-indigo-600/20 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '6s', animationDelay: '1s' }} />
+        <div className="absolute top-[40%] left-[50%] -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-blue-500/10 rounded-full blur-[100px] rotate-12" />
+        <div className="absolute inset-0 bg-[url('https://upload.wikimedia.org/wikipedia/commons/1/18/Transparent_Square_Tiles_Texture.png')] opacity-[0.03] bg-repeat" />
       </div>
 
-      {loading && <SplashScreen onFinish={() => setLoading(false)} />}
+      <div className="z-10 w-full max-w-7xl mx-auto px-6 py-12 flex flex-col items-center text-center">
 
-      <div className={`w-full max-w-5xl space-y-8 flex-1 flex flex-col items-center justify-center transition-opacity duration-1000 ${loading ? 'opacity-0' : 'opacity-100'}`}>
-        <div className="w-full flex flex-col items-center space-y-8 py-12">
-          <Controls />
-          <CodeFrame />
+        {/* Badge */}
+        <div className="mb-8 animate-fade-in-down">
+          <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md text-sm font-medium text-indigo-300 shadow-lg shadow-indigo-500/10">
+            <Sparkles size={16} />
+            <span>The Most Aesthetic Code Editor</span>
+          </span>
         </div>
-      </div>
 
-      {/* Product Hunt Badge - Fixed Bottom Left */}
-      {!loading && (
-        <a
-          href="https://www.producthunt.com/products/syntaray?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-syntaray"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="fixed bottom-4 left-4 z-50 transition-all duration-300 hover:scale-105 active:scale-95 hover:rotate-2 animate-fade-in"
-        >
-          <img
-            src={`https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1052897&theme=${appTheme === 'dark' ? 'dark' : 'light'}&t=${appTheme === 'dark' ? '1766341913514' : '1766342063585'}`}
-            alt="SyntaRay - Create beautiful code snippets | Product Hunt"
-            style={{ width: '180px', height: '39px' }}
-            width="180"
-            height="39"
-          />
-        </a>
-      )}
+        {/* Hero Title */}
+        <h1 className="text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-8 animate-fade-in-up space-y-4">
+          <span className="block bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-200 to-indigo-400 drop-shadow-sm">
+            Make Your Code
+          </span>
+          <span className="block bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 drop-shadow-lg">
+            Look Beautiful.
+          </span>
+        </h1>
 
-      {/* Personalized Footer */}
-      {!loading && (
-        <footer className="w-full flex justify-center pb-8 animate-fade-in-up animation-delay-1000 z-10">
+        {/* Subtitle */}
+        <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-400 mb-12 animate-fade-in-up animation-delay-200 leading-relaxed">
+          Create stunning, shareable code snippets in seconds. <br className="hidden md:block" />
+          Choose from elegant themes, fonts, and backgrounds to make your work shine.
+        </p>
+
+        {/* CTA Button */}
+        <div className="animate-fade-in-up animation-delay-400 relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl blur opacity-70 group-hover:opacity-100 transition duration-1000 group-hover:duration-200" />
+          <Link href="/editor">
+            <button className="relative px-8 py-4 bg-black rounded-xl leading-none flex items-center gap-3 transition-transform duration-200 group-hover:-translate-y-1 active:scale-95">
+              <span className="font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white">
+                Let's Try
+              </span>
+              <ArrowRight className="text-white group-hover:translate-x-1 transition-transform" />
+            </button>
+          </Link>
+        </div>
+
+        {/* Features Preview */}
+        <div className="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl animate-fade-in-up animation-delay-600">
+          {[
+            {
+              icon: <Palette size={24} className="text-pink-400" />,
+              title: "Modern Themes",
+              desc: "Curated collection of aesthetic themes and gradients."
+            },
+            {
+              icon: <Code2 size={24} className="text-indigo-400" />,
+              title: "Smart Syntax",
+              desc: "Auto-detection for 20+ programming languages."
+            },
+            {
+              icon: <Zap size={24} className="text-yellow-400" />,
+              title: "Instant Export",
+              desc: "Export high-resolution PNG, JPG, or SVG in one click."
+            }
+          ].map((feature, i) => (
+            <div key={i} className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors backdrop-blur-sm flex flex-col items-center">
+              <div className="p-3 rounded-xl bg-white/5 mb-4 shadow-inner">
+                {feature.icon}
+              </div>
+              <h3 className="text-xl font-bold mb-2 text-gray-200">{feature.title}</h3>
+              <p className="text-sm text-gray-400">{feature.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <footer className="mt-24 text-sm text-gray-600 animate-fade-in flex flex-col items-center gap-4">
+          <p>Designed for developers, by developers.</p>
+          {/* Product Hunt Badge - Static for Landing */}
           <a
-            href="https://github.com/ayazdoruck"
+            href="https://www.producthunt.com/products/syntaray?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-syntaray"
             target="_blank"
             rel="noopener noreferrer"
-            className="group flex items-center gap-1.5 text-sm font-medium transition-all duration-300 active:scale-95"
+            className="hover:opacity-80 transition-opacity"
           >
-            <span className={`transition-colors ${appTheme === 'dark' ? 'text-white/40 group-hover:text-white/60' : 'text-black/30 group-hover:text-black/50'}`}>
-              created by
-            </span>
-            <span className="relative">
-              <span className={`transition-colors drop-shadow-[0_0_8px_rgba(129,140,248,0.3)] ${appTheme === 'dark' ? 'text-indigo-400 group-hover:text-indigo-300' : 'text-indigo-600 group-hover:text-indigo-500'}`}>
-                @ayazdoruck
-              </span>
-              <span className={`absolute -bottom-1 left-0 w-0 h-[1px] transition-all duration-300 ${appTheme === 'dark' ? 'bg-indigo-500/50 group-hover:w-full' : 'bg-indigo-600/40 group-hover:w-full'}`} />
-            </span>
-            <svg
-              className={`w-3 h-3 transition-colors mt-0.5 ${appTheme === 'dark' ? 'text-white/20 group-hover:text-white/40' : 'text-black/20 group-hover:text-black/40'}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-            </svg>
+            <img
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1052897&theme=dark"
+              alt="SyntaRay - Create beautiful code snippets | Product Hunt"
+              style={{ width: '200px', height: '43px' }}
+              width="200"
+              height="43"
+            />
           </a>
         </footer>
-      )}
+
+      </div>
     </main>
   );
 }

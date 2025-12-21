@@ -423,15 +423,15 @@ export default function Controls() {
             {/* Main Toolbar */}
             <div className="w-full max-w-6xl mx-auto mb-8 z-40 relative px-4 select-none">
                 <div className={`
-             rounded-2xl p-2 pl-4 md:p-3 md:pl-6 flex flex-wrap items-center gap-3 md:gap-4 transition-all duration-300
+             rounded-2xl p-2 pl-4 md:p-3 md:pl-6 flex flex-wrap md:flex-nowrap items-center gap-3 md:gap-4 transition-all duration-300
              ${glassyClass}
         `}>
                     {/* Brand / Logo */}
-                    <div className={`flex items-center gap-3 mr-4 pr-6 border-r relative group cursor-default transition-colors ${appTheme === 'dark' ? 'border-white/10' : 'border-black/5'}`}>
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-110 transition-transform">
+                    <div className={`flex items-center gap-3 mr-auto md:mr-4 pr-0 md:pr-6 md:border-r relative group cursor-default transition-colors ${appTheme === 'dark' ? 'border-white/10' : 'border-black/5'}`}>
+                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/30 group-hover:scale-110 transition-transform flex-shrink-0">
                             <div className="w-4 h-4 border-2 border-white/80 rounded-sm transform rotate-45" />
                         </div>
-                        <span className={`font-bold text-lg tracking-tight bg-clip-text text-transparent hidden md:block transition-all duration-300 ${appTheme === 'dark'
+                        <span className={`font-bold text-lg tracking-tight bg-clip-text text-transparent hidden sm:block transition-all duration-300 ${appTheme === 'dark'
                             ? 'bg-gradient-to-r from-indigo-200 to-white'
                             : 'bg-gradient-to-r from-indigo-600 to-indigo-950'
                             }`}>
@@ -440,7 +440,7 @@ export default function Controls() {
                     </div>
 
                     {/* Theme Select (Custom) */}
-                    <div className="relative group min-w-[160px]">
+                    <div className="relative group w-full sm:w-auto min-w-[160px]">
                         <button
                             onMouseDown={(e) => { e.stopPropagation(); setActivePopover(activePopover === 'theme' ? null : 'theme'); }}
                             className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium border transition-all active:scale-[0.98] ${activePopover === 'theme' ? 'border-indigo-500 ring-4 ring-indigo-500/10' : (appTheme === 'dark' ? 'border-white/10 hover:bg-white/5' : 'border-black/10 hover:bg-black/5')} ${inputClass}`}
@@ -474,7 +474,7 @@ export default function Controls() {
                     </div>
 
                     {/* Language Select (Custom) */}
-                    <div className="relative group min-w-[120px]">
+                    <div className="relative group w-full sm:w-auto min-w-[120px]">
                         <button
                             onMouseDown={(e) => { e.stopPropagation(); setActivePopover(activePopover === 'language' ? null : 'language'); }}
                             className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium border transition-all active:scale-[0.98] ${activePopover === 'language' ? 'border-indigo-500 ring-4 ring-indigo-500/10' : (appTheme === 'dark' ? 'border-white/10 hover:bg-white/5' : 'border-black/10 hover:bg-black/5')} ${inputClass}`}
@@ -514,7 +514,7 @@ export default function Controls() {
 
                         {/* Background Popover */}
                         {activePopover === 'bg' && (
-                            <div ref={popoverRef} className={`absolute top-14 left-0 w-[320px] p-4 rounded-xl border backdrop-blur-2xl z-50 animate-in fade-in slide-in-from-top-2 ${popoverClass}`} onMouseDown={(e) => e.stopPropagation()}>
+                            <div ref={popoverRef} className={`absolute top-14 left-1/2 -translate-x-1/2 md:translate-x-0 md:left-0 w-[300px] md:w-[320px] p-4 rounded-xl border backdrop-blur-2xl z-50 animate-in fade-in slide-in-from-top-2 ${popoverClass}`} onMouseDown={(e) => e.stopPropagation()}>
                                 {/* Tabs / Switcher with Sliding Pill */}
                                 <div className="relative flex p-1 mb-4 rounded-lg bg-black/10 dark:bg-black/40 isolation-auto">
                                     {/* The Sliding Pill */}
@@ -1029,12 +1029,16 @@ export default function Controls() {
                         )}
                     </div>
 
-                    {/* Right-aligned Actions */}
-                    <div className="flex items-center gap-3 ml-auto">
+                    {/* Divider */}
+                    {/* Divider */}
+                    <div className={`hidden md:block w-[1px] h-6 ml-6 mr-6 self-center flex-shrink-0 ${appTheme === 'dark' ? 'bg-white/10' : 'bg-black/5'}`} />
+
+                    {/* Action Buttons */}
+                    <div className="flex-1 flex items-center justify-center gap-3">
                         {/* Copy Button */}
                         <button
                             onClick={handleCopy}
-                            className={`flex items-center justify-center gap-2 w-[105px] py-2.5 rounded-lg border font-medium transition-all duration-300 active:scale-95 whitespace-nowrap ${copying
+                            className={`flex items-center justify-center gap-2 w-32 py-2.5 rounded-lg border font-medium transition-all duration-300 active:scale-95 whitespace-nowrap ${copying
                                 ? 'bg-green-500/10 border-green-500 text-green-500 shadow-lg shadow-green-500/10'
                                 : (appTheme === 'dark' ? 'border-white/10 hover:bg-white/5' : 'border-black/10 hover:bg-black/5')
                                 }`}
@@ -1047,7 +1051,7 @@ export default function Controls() {
                         <div className="relative">
                             <button
                                 onMouseDown={(e) => { e.stopPropagation(); setActivePopover(activePopover === 'export' ? null : 'export'); }}
-                                className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-all shadow-lg shadow-indigo-500/20 active:scale-95 whitespace-nowrap"
+                                className="flex items-center justify-center gap-2 w-32 py-2.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-all shadow-lg shadow-indigo-500/20 active:scale-95 whitespace-nowrap"
                             >
                                 <Download size={18} />
                                 <span className="text-sm">Export</span>
