@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import { useStore } from '@/lib/store';
-import { highlightCode, getThemeColors } from '@/lib/shiki';
+import { highlightCode, getThemeColors, getContrastColor } from '@/lib/shiki';
 import hljs from 'highlight.js';
 
 export default function CodeFrame() {
@@ -18,6 +18,7 @@ export default function CodeFrame() {
     const [highlightedHtml, setHighlightedHtml] = useState('');
     const [windowBg, setWindowBg] = useState('#1e1e1e');
     const [detectedLanguage, setDetectedLanguage] = useState(language);
+    const [fileNameColor, setFileNameColor] = useState('rgba(255, 255, 255, 0.7)');
 
     // Effect to handle detection and highlighting
     useEffect(() => {
@@ -74,6 +75,10 @@ export default function CodeFrame() {
                 ]);
                 setHighlightedHtml(html);
                 setWindowBg(colors.bg);
+
+                // Calculate file name color based on background
+                const bgToUse = customWindowBg || colors.bg;
+                setFileNameColor(getContrastColor(bgToUse));
             } catch (error) {
                 console.error('Highlighting failed:', error);
                 // Fallback to text highlighting
@@ -82,7 +87,7 @@ export default function CodeFrame() {
             }
         }, 10); // Reduced to 15ms for instant feedback while keeping minimal debouncing
         return () => clearTimeout(t);
-    }, [code, language, theme, showLineNumbers, highlightedLines]);
+    }, [code, language, theme, showLineNumbers, highlightedLines, customWindowBg]);
 
 
     // Internal toggle logic mapping
@@ -242,8 +247,11 @@ export default function CodeFrame() {
                                 </div>
                                 {showFileName && (
                                     <div
-                                        className="text-xs text-white/40 font-mono font-medium truncate max-w-[200px] text-center opacity-60"
-                                        style={{ fontFamily: `"${fontFamily}", ui-monospace, SFMono-Regular, monospace` }}
+                                        className="text-xs font-mono font-medium truncate max-w-[200px] text-center transition-colors duration-300"
+                                        style={{
+                                            fontFamily: `"${fontFamily}", ui-monospace, SFMono-Regular, monospace`,
+                                            color: fileNameColor
+                                        }}
                                     >
                                         {fileName}
                                     </div>
@@ -251,9 +259,9 @@ export default function CodeFrame() {
                                 <div className="flex justify-end gap-3 w-20">
                                     {showControls && windowTheme === 'windows' && (
                                         <>
-                                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-white/40"><path d="M2 6h8" stroke="currentColor" strokeWidth="1" strokeLinecap="round" /></svg>
-                                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="text-white/40"><rect x="1.5" y="1.5" width="7" height="7" stroke="currentColor" strokeWidth="1" strokeLinecap="round" /></svg>
-                                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-white/40"><path d="M3 3l6 6M9 3L3 9" stroke="currentColor" strokeWidth="1" strokeLinecap="round" /></svg>
+                                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="transition-colors duration-300" style={{ color: fileNameColor }}><path d="M2 6h8" stroke="currentColor" strokeWidth="1" strokeLinecap="round" /></svg>
+                                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" className="transition-colors duration-300" style={{ color: fileNameColor }}><rect x="1.5" y="1.5" width="7" height="7" stroke="currentColor" strokeWidth="1" strokeLinecap="round" /></svg>
+                                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="transition-colors duration-300" style={{ color: fileNameColor }}><path d="M3 3l6 6M9 3L3 9" stroke="currentColor" strokeWidth="1" strokeLinecap="round" /></svg>
                                         </>
                                     )}
                                 </div>

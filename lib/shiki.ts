@@ -66,6 +66,7 @@ export const highlightCode = async (code: string, lang: string, theme: string, s
     }
 };
 
+
 export const getThemeColors = async (theme: string) => {
     const highlighter = await initializeHighlighter();
     const themeData = highlighter.getTheme(theme);
@@ -73,4 +74,30 @@ export const getThemeColors = async (theme: string) => {
         bg: typeof themeData.bg === 'string' ? themeData.bg : '#1e1e1e', // fallback
         fg: typeof themeData.fg === 'string' ? themeData.fg : '#ffffff',
     };
+};
+
+// Helper function to calculate luminance from hex color
+const getLuminance = (hex: string): number => {
+    // Remove # if present
+    const color = hex.replace('#', '');
+
+    // Convert to RGB
+    const r = parseInt(color.substring(0, 2), 16) / 255;
+    const g = parseInt(color.substring(2, 4), 16) / 255;
+    const b = parseInt(color.substring(4, 6), 16) / 255;
+
+    // Apply gamma correction
+    const [rs, gs, bs] = [r, g, b].map(c =>
+        c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+    );
+
+    // Calculate relative luminance
+    return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+};
+
+// Get contrasting text color based on background
+export const getContrastColor = (bgColor: string): string => {
+    const luminance = getLuminance(bgColor);
+    // If background is light (luminance > 0.5), use dark text, otherwise use light text
+    return luminance > 0.5 ? 'rgba(0, 0, 0, 0.7)' : 'rgba(255, 255, 255, 0.7)';
 };
