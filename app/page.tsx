@@ -28,24 +28,27 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Product Hunt Badge - Fixed Bottom Left */}
+      {!loading && (
+        <a
+          href="https://www.producthunt.com/products/syntaray?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-syntaray"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="fixed bottom-4 left-4 z-50 transition-all duration-300 hover:scale-105 active:scale-95 hover:rotate-2 animate-fade-in"
+        >
+          <img
+            src={`https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1052897&theme=${appTheme === 'dark' ? 'dark' : 'light'}&t=${appTheme === 'dark' ? '1766341913514' : '1766342063585'}`}
+            alt="SyntaRay - Create beautiful code snippets | Product Hunt"
+            style={{ width: '180px', height: '39px' }}
+            width="180"
+            height="39"
+          />
+        </a>
+      )}
+
       {/* Personalized Footer */}
       {!loading && (
-        <footer className="w-full flex flex-col items-center gap-6 pb-8 animate-fade-in-up animation-delay-1000 z-10">
-          <a
-            href="https://www.producthunt.com/products/syntaray?embed=true&utm_source=badge-featured&utm_medium=badge&utm_campaign=badge-syntaray"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="transition-transform hover:scale-105 active:scale-95"
-          >
-            <img
-              src={`https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=1052897&theme=${appTheme === 'dark' ? 'dark' : 'light'}&t=${appTheme === 'dark' ? '1766341913514' : '1766342063585'}`}
-              alt="SyntaRay - Create beautiful code snippets | Product Hunt"
-              style={{ width: '250px', height: '54px' }}
-              width="250"
-              height="54"
-            />
-          </a>
-
+        <footer className="w-full flex justify-center pb-8 animate-fade-in-up animation-delay-1000 z-10">
           <a
             href="https://github.com/ayazdoruck"
             target="_blank"
