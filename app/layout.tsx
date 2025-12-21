@@ -11,14 +11,32 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL('https://syntaray.vercel.app'),
   title: {
-    default: "SyntaRay | Create Beautiful Code Snippets",
+    default: "SyntaRay - Create Beautiful Code Snippets & Screenshots",
     template: "%s | SyntaRay"
   },
-  description: "Turn your code into beautiful images. SyntaRay is a minimalist code visualization tool with professional layout controls, syntax highlighting, and custom themes.",
-  keywords: ["code snippets", "code visualization", "syntax highlighting", "developer tools", "code image generator", "carbon alternative", "syntaray"],
+  description: "Transform your code into stunning visual presentations with SyntaRay. Professional code screenshot generator with 50+ themes, syntax highlighting, and customizable layouts. Perfect for documentation, social media, and portfolios.",
+  keywords: [
+    "code snippets",
+    "code screenshot",
+    "code visualization",
+    "syntax highlighting",
+    "developer tools",
+    "code image generator",
+    "carbon alternative",
+    "ray.so alternative",
+    "code beautifier",
+    "programming screenshots",
+    "syntaray",
+    "code to image",
+    "monokai theme",
+    "code presentation",
+    "github readme images"
+  ],
   authors: [{ name: "Ayaz Doruk", url: "https://github.com/ayazdoruck" }],
   creator: "Ayaz Doruk",
   publisher: "SyntaRay",
+  applicationName: "SyntaRay",
+  category: "Developer Tools",
   robots: {
     index: true,
     follow: true,
@@ -34,27 +52,30 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     url: 'https://syntaray.vercel.app',
-    title: 'SyntaRay | Create Beautiful Code Snippets',
-    description: 'Turn your code into beautiful images instantly. Professional layout controls and 50+ themes.',
+    title: 'SyntaRay - Create Beautiful Code Snippets & Screenshots',
+    description: 'Transform your code into stunning visual presentations. 50+ themes, professional layouts, instant export.',
     siteName: 'SyntaRay',
     images: [
       {
-        url: '/og-image.png', // Bunu daha sonra eklememiz gerekecek veya varsayılan bir resim kullanacağız
+        url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'SyntaRay Code Visualizer',
+        alt: 'SyntaRay - Beautiful Code Screenshot Generator',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'SyntaRay | Beautiful Code Snippets',
-    description: 'Turn your code into beautiful images instantly.',
+    title: 'SyntaRay - Beautiful Code Screenshots',
+    description: 'Transform your code into stunning visuals. 50+ themes, professional layouts.',
     creator: '@ayazdoruck',
-    images: ['/og-image.png'], // Twitter için de aynı görsel
+    images: ['/og-image.png'],
   },
   verification: {
-    google: 'google803ea4830a188e10', // Meta tag ile doğrulama (dosya yöntemine ek olarak garanti olsun)
+    google: 'google803ea4830a188e10',
+  },
+  alternates: {
+    canonical: 'https://syntaray.vercel.app',
   },
 };
 

@@ -7,7 +7,6 @@ export default function robots(): MetadataRoute.Robots {
         rules: {
             userAgent: '*',
             allow: '/',
-            disallow: '/private/', // Eğer gizli bir klasörünüz varsa buraya ekleyin
         },
         sitemap: `${baseUrl}/sitemap.xml`,
     }

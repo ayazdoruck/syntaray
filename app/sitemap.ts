@@ -7,10 +7,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
         {
             url: baseUrl,
             lastModified: new Date(),
-            changeFrequency: 'daily',
-            priority: 1,
+            changeFrequency: 'weekly',
+            priority: 1.0,
         },
-        // Eğer başka sayfalarınız varsa buraya ekleyebilirsiniz, örneğin blog vs.
-        // Şimdilik sadece ana sayfa olduğu için tek URL yeterli.
+        {
+            url: `${baseUrl}/editor`,
+            lastModified: new Date(),
+            changeFrequency: 'weekly',
+            priority: 0.9,
+        },
     ]
 }
