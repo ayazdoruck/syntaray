@@ -4,6 +4,8 @@
 
 # ✨ SyntaRay
 
+[![CI](https://github.com/ayazdoruck/syntaray/actions/workflows/ci.yml/badge.svg)](https://github.com/ayazdoruck/syntaray/actions/workflows/ci.yml)
+
 ### Transform Your Code into Beautiful Snapshots
 
 [![Live Demo](https://img.shields.io/badge/🌐_Live_Demo-syntaray.vercel.app-6366f1?style=for-the-badge)](https://syntaray.vercel.app)
