@@ -29,6 +29,8 @@ export const initializeHighlighter = async () => {
 export const highlightCode = async (code: string, lang: string, theme: string, showLineNumbers?: boolean, highlightedLines: number[] = []) => {
     const highlighter = await initializeHighlighter();
 
+    // Shiki's option and hast node types are not re-exported by the bundle entry.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const options: any = {
         lang,
         theme,
@@ -36,6 +38,7 @@ export const highlightCode = async (code: string, lang: string, theme: string, s
 
     options.transformers = [
         {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             line(node: any, line: number) {
                 // Dimming logic
                 if (highlightedLines.length > 0 && !highlightedLines.includes(line)) {

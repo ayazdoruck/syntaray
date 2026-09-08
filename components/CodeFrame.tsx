@@ -34,7 +34,7 @@ export default function CodeFrame() {
                         'ruby', 'sql', 'yaml', 'markdown'
                     ];
                     const result = hljs.highlightAuto(code, commonLangs);
-                    let detected = result.language;
+                    const detected = result.language;
 
                     // 2. Map aliases to Shiki-supported names
                     const aliasMap: Record<string, string> = {

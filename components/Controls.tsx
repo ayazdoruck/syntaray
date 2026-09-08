@@ -267,6 +267,9 @@ export default function Controls() {
                 const store = useStore.getState();
 
                 // Object of valid setter keys to check against
+                // Setters for unrelated value types are collected in one lookup table,
+                // so a single shared parameter type cannot describe them.
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const setters: Record<string, any> = {
                     code: store.setCode,
                     language: store.setLanguage,
@@ -526,7 +529,7 @@ export default function Controls() {
                                             transform: `translateX(${colorMode === 'solid' ? '0' : colorMode === 'gradient' ? '100%' : '200%'})`,
                                         }}
                                     />
-                                    {['solid', 'gradient', 'image'].map((m) => (
+                                    {(['solid', 'gradient', 'image'] as const).map((m) => (
                                         <button
                                             key={m}
                                             onClick={() => {
@@ -537,7 +540,7 @@ export default function Controls() {
                                                         setColorMode('image');
                                                     }
                                                 } else {
-                                                    setColorMode(m as any);
+                                                    setColorMode(m);
                                                     if (m === 'solid') setBackground(solidColor);
                                                     else if (m === 'gradient') updateGradient(gradientStart, gradientEnd, gradientAngle);
                                                 }
@@ -672,10 +675,10 @@ export default function Controls() {
                                             }}
                                         />
 
-                                        {['window', 'editor', 'misc'].map((tab) => (
+                                        {(['window', 'editor', 'misc'] as const).map((tab) => (
                                             <button
                                                 key={tab}
-                                                onClick={() => setSettingsTab(tab as any)}
+                                                onClick={() => setSettingsTab(tab)}
                                                 className={`px-4 py-3 text-left text-sm font-semibold transition-all duration-200 flex items-center justify-between relative z-10 ${settingsTab === tab
                                                     ? 'text-white'
                                                     : (appTheme === 'dark' ? 'text-white/60 hover:text-white hover:bg-white/5' : 'text-black/60 hover:text-black hover:bg-black/5')
@@ -697,10 +700,10 @@ export default function Controls() {
                                                         <Check size={12} className="opacity-0" />
                                                     </div>
                                                     <div className="grid grid-cols-3 gap-2">
-                                                        {['mac', 'windows', 'gray', 'none'].map((style) => (
+                                                        {(['mac', 'windows', 'gray', 'none'] as const).map((style) => (
                                                             <button
                                                                 key={style}
-                                                                onClick={() => setWindowTheme(style as any)}
+                                                                onClick={() => setWindowTheme(style)}
                                                                 className={`flex-1 h-9 rounded-md border flex items-center justify-center transition-all ${windowTheme === style ? (appTheme === 'dark' ? 'bg-indigo-500 border-transparent text-white' : 'bg-white border-indigo-200 shadow-sm text-indigo-600') : 'bg-black/5 dark:bg-white/5 border-transparent opacity-60 hover:opacity-100'}`}
                                                             >
                                                                 {style === 'mac' && <div className="flex gap-1"><div className="w-2 h-2 rounded-full bg-[#ff5f56]" /><div className="w-2 h-2 rounded-full bg-[#ffbd2e]" /><div className="w-2 h-2 rounded-full bg-[#27c93f]" /></div>}

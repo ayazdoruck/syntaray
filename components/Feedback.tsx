@@ -18,6 +18,9 @@ export default function Feedback() {
     // Handle Toast
     useEffect(() => {
         if (toast) {
+            // The active toast/dialog is copied into local state so the exit
+            // animation can keep rendering it after the store value is cleared.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setActiveToast(toast);
             // Small delay to ensure entry animation triggers
             const timer = setTimeout(() => setToastVisible(true), 10);
@@ -40,6 +43,9 @@ export default function Feedback() {
     // Handle Dialog
     useEffect(() => {
         if (dialog) {
+            // The active toast/dialog is copied into local state so the exit
+            // animation can keep rendering it after the store value is cleared.
+            // eslint-disable-next-line react-hooks/set-state-in-effect
             setActiveDialog(dialog);
             // Small delay to trigger animation
             const timer = setTimeout(() => setDialogVisible(true), 10);

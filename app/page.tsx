@@ -172,7 +172,7 @@ export default function LandingPage() {
             className={`relative px-8 py-4 rounded-xl leading-none flex items-center gap-3 transition-all duration-1000 ease-in-out active:scale-95 ${isFadingOut ? 'bg-transparent' : 'bg-black'} ${isLaunching && !isFadingOut ? 'scale-95 bg-black/50 duration-200' : ''} ${!isLaunching ? 'group-hover:-translate-y-1 duration-200' : ''}`}
           >
             <span className={`font-bold text-lg bg-clip-text text-transparent bg-gradient-to-r from-indigo-200 to-white transition-opacity duration-300 ${isLaunching ? 'opacity-0' : ''}`}>
-              Let's Try
+              Let&apos;s Try
             </span>
             <ArrowRight
               className={`text-white ${isLaunching ? 'animate-arrow-launch' : 'group-hover:translate-x-1 transition-transform'}`}
@@ -232,7 +232,7 @@ export default function LandingPage() {
                   </div>
                   <div className="flex gap-4">
                     <span className="text-gray-500 select-none">4</span>
-                    <span className="pl-12"><span className="text-[#A6E22E]">theme</span><span className="text-[#F92672]">=</span><span className="text-[#E6DB74]">"monokai"</span></span>
+                    <span className="pl-12"><span className="text-[#A6E22E]">theme</span><span className="text-[#F92672]">=</span><span className="text-[#E6DB74]">&quot;monokai&quot;</span></span>
                   </div>
                   <div className="flex gap-4">
                     <span className="text-gray-500 select-none">5</span>
