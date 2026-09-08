@@ -178,3 +178,7 @@ This project is open source and available under the [MIT License](LICENSE).
 [⬆ Back to Top](#-syntaray)
 
 </div>
+
+## Lisans
+
+[MIT](LICENSE)
